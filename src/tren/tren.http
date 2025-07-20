@@ -1,0 +1,35 @@
+### GET todos los trenes
+GET http://localhost:3000/api/tren
+
+### GET tren por ID
+GET http://localhost:3000/api/tren
+
+### POST crear tren
+POST http://localhost:3000/api/tren
+Content-Type: application/json
+
+{
+  "color": "Naranja",
+  "modelo": "Ben 10"
+}
+
+
+### PUT actualizar tren
+PUT http://localhost:3000/api/tren/3
+Content-Type: application/json
+
+{
+  "color": "Rosa",
+  "modelo": "Peppa Pig"
+}
+
+###
+PATCH  http://localhost:3000/api/tren/2
+Content-Type: application/json
+
+{
+  "modelo": "Barnie es un dinosaurio"
+}
+
+### DELETE eliminar tren
+DELETE http://localhost:3000/api/tren/3
