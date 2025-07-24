@@ -1,0 +1,32 @@
+### find all
+GET http://localhost:3000/api/recorrido/
+
+### add 
+# @name recorridoCreated
+POST http://localhost:3000/api/recorrido/
+Content-Type: application/json
+
+{
+    "ciudadSalida": "Cañada de Gómez",
+    "ciudadLlegada": "Cordoba",
+    "totalKm": 200
+}
+
+###ID
+@id = {{recorridoCreated.response.body.data.id}}
+
+### find one
+GET http://localhost:3000/api/recorrido/{{id}}
+
+### update 
+PUT http://localhost:3000/api/recorrido/{{id}}
+Content-Type: application/json
+
+{
+    "ciudadSalida": "Rosario",
+    "ciudadLlegada": "Cordoba",
+    "totalKm": 275
+}
+
+### delete
+DELETE http://localhost:3000/api/recorrido/{{id}}
