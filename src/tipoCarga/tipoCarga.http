@@ -1,0 +1,35 @@
+### GET todos los tipoCarga
+GET http://localhost:3000/api/tipoCarga
+
+### GET tren por ID
+GET http://localhost:3000/api/tipoCarga/2
+
+### POST crear tren
+POST http://localhost:3000/api/tipoCarga
+Content-Type: application/json
+
+{
+  "name": "Naran",
+  "desc": "Ben "
+}
+
+
+### PUT actualizar tren
+PUT http://localhost:3000/api/tipoCarga/3
+Content-Type: application/json
+
+{
+  "name": "Rosa",
+  "desc": "Peppa Pig"
+}
+
+###
+PATCH  http://localhost:3000/api/tipoCarga/2
+Content-Type: application/json
+
+{
+  "desc": "Barnie es un dinosaurio"
+}
+
+### DELETE eliminar tren
+DELETE http://localhost:3000/api/tipoCarga/3
