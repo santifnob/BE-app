@@ -40,7 +40,7 @@ async function findOne (req: Request, res: Response): Promise<void> {
 
 async function add (req: Request, res: Response): Promise<void> {
   try {
-    const conductor = em.create(Conductor, req.body)
+    const conductor = em.create(Conductor, req.body.sanitizedInput)
     await em.flush()
     res.status(201).json({ message: 'conductor creado', data: conductor })
   } catch (error: any) {
@@ -52,7 +52,7 @@ async function update (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
     const conductor = await em.findOneOrFail(Conductor, { id })
-    em.assign(conductor, req.body)
+    em.assign(conductor, req.body.sanitizedInput)
     await em.flush()
     res.status(200).json({ message: 'conductor actualizado', data: conductor })
   } catch (error: any) {
@@ -85,4 +85,4 @@ async function remove (req: Request, res: Response): Promise<void> {
   }
 }
 
-export { sanitizeConductorInput as sanitizeRecorridoInput, findAll, findOne, add, update, remove }
+export { sanitizeConductorInput, findAll, findOne, add, update, remove }

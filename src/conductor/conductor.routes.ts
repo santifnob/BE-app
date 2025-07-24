@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { findAll, findOne, add, update, remove, sanitizeRecorridoInput as sanitizeConductorInput } from './conductor.controller.js'
+import { findAll, findOne, add, update, remove, sanitizeConductorInput } from './conductor.controller.js'
 
 export const conductorRouter = Router()
 

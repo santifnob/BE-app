@@ -14,7 +14,7 @@ app.use((req, res, next) => {
 
 // routers con app.use('/api/"nombreEntidad"/')
 
-app.use('/api/recorrido', conductorRouter) 
+app.use('/api/conductor', conductorRouter)
 
 app.use((_, res) => {
   return res.status(404).send({ message: 'Resource not found' })
