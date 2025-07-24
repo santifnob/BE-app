@@ -1,0 +1,30 @@
+### find all
+GET http://localhost:3000/api/categoriaDenuncia/
+
+### add 
+# @name catCreated
+POST http://localhost:3000/api/categoriaDenuncia/
+Content-Type: application/json
+
+{
+    "descripcion": "Denuncia 1",
+    "titulo": "Titulo 1"
+}
+
+###ID
+@id = {{catCreated.response.body.data.id}}
+
+### find one
+GET http://localhost:3000/api/categoriaDenuncia/{{id}}
+
+### update 
+PUT http://localhost:3000/api/categoriaDenuncia/{{id}}
+Content-Type: application/json
+
+{
+    "descripcion":"Denuncia Actualizada",
+    "titulo":"Titulo Actualizado"
+}
+
+### delete
+DELETE http://localhost:3000/api/categoriaDenuncia/{{id}}

@@ -3,6 +3,7 @@ import express from 'express'
 // IMPORTAR LOS ROUTERS CORRESPONDIENTES
 import { orm, syncSchema } from './shared/db/orm.js'
 import { RequestContext } from '@mikro-orm/core'
+import { catRouter } from './CategoriaDenuncia/categoriaDenunica.routes.js'
 
 const app = express()
 app.use(express.json())
@@ -12,6 +13,7 @@ app.use((req, res, next) => {
 })
 
 // routers con app.use('/api/"nombreEntidad"/')
+app.use('/api/categoriaDenuncia', catRouter)
 
 app.use((_, res) => {
   return res.status(404).send({ message: 'Resource not found' })
