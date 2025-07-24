@@ -1,0 +1,31 @@
+### GET ALL
+GET http://localhost:3000/api/conductor/
+
+### POST
+# @name conductorCreated
+POST http://localhost:3000/api/conductor/
+Content-Type: application/json
+
+{
+    "name": "tomas",
+    "apellido": "castel"
+}
+
+### ID
+@id = {{conductorCreated.response.body.data.id}} 
+
+### FIND ONE
+GET http://localhost:3000/api/conductor/{{id}}
+
+### PUT
+PUT http://localhost:3000/api/conductor/{{id}}
+Content-Type: application/json
+
+{
+    "name": "javier",
+    "apellido": "sanchez"
+}
+
+### DELETE
+@idToDelete = {{conductorCreated.response.body.data.id}} 
+DELETE http://localhost:3000/api/conductor/{{id}}
