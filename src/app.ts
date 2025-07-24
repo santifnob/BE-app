@@ -6,6 +6,7 @@ import { RequestContext } from '@mikro-orm/core'
 import { recorridoRouter } from './recorrido/recorrido.routes.js'
 import { trenRuta } from './tren/tren.ruta.js'
 import { conductorRouter } from './conductor/conductor.routes.js'
+import { catRouter } from './CategoriaDenuncia/categoriaDenunica.routes.js'
 
 const app = express()
 app.use(express.json())
@@ -17,6 +18,7 @@ app.use((req, res, next) => {
 // routers con app.use('/api/"nombreEntidad"/')
 app.use('/api/recorrido', recorridoRouter)
 app.use('/api/tren',trenRuta)
+app.use('/api/categoriaDenuncia', catRouter)
 
 app.use('/api/conductor', conductorRouter)
 
