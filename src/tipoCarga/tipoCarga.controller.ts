@@ -4,21 +4,20 @@ import { tipoCarga } from './tipoCarga.entity.js'
 
 const em = orm.em
 
-function sanitizeTipoCargaInput (req: Request, res: Response, next: NextFunction): void { 
-  req.body.sanitizedInput = { 
-    name: req.body.name, 
-    desc: req.body.desc 
-  } 
- 
-  Object.keys(req.body.sanitizedInput).forEach((key) => { 
-    if (req.body.sanitizedInput[key] === undefined) { 
-      req.body.sanitizedInput[key] = undefined 
-    } 
-  }) 
- 
-  next() 
-} 
- 
+function sanitizeTipoCargaInput (req: Request, res: Response, next: NextFunction): void {
+  req.body.sanitizedInput = {
+    name: req.body.name,
+    desc: req.body.desc
+  }
+
+  Object.keys(req.body.sanitizedInput).forEach((key) => {
+    if (req.body.sanitizedInput[key] === undefined) {
+      req.body.sanitizedInput[key] = undefined
+    }
+  })
+
+  next()
+}
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {

@@ -12,5 +12,5 @@ function asyncHandler (fn: Function) {
 tipoCargaRouter.get('/', asyncHandler(findAll))
 tipoCargaRouter.get('/:id', asyncHandler(findOne))
 tipoCargaRouter.post('/', sanitizeTipoCargaInput, asyncHandler(add))
-tipoCargaRouter.put('/:id', sanitizeTipoCargaInput,asyncHandler(update))
+tipoCargaRouter.put('/:id', sanitizeTipoCargaInput, asyncHandler(update))
 tipoCargaRouter.delete('/:id', asyncHandler(remove))
