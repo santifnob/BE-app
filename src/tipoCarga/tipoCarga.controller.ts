@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import { orm } from '../shared/db/orm.js'
-import { tipoCarga } from './tipoCarga.entity.js'
+import { TipoCarga } from './tipoCarga.entity.js'
 
 const em = orm.em
 
@@ -21,7 +21,7 @@ function sanitizeTipoCargaInput (req: Request, res: Response, next: NextFunction
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const tipoCargas = await em.find(tipoCarga, {})
+    const tipoCargas = await em.find(TipoCarga, {})
     res.status(200).json({ message: 'Todos los tipos de carga', data: tipoCargas })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
@@ -31,7 +31,7 @@ async function findAll (req: Request, res: Response): Promise<void> {
 async function findOne (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const tipoCargas = await em.findOneOrFail(tipoCarga, { id })
+    const tipoCargas = await em.findOneOrFail(TipoCarga, { id })
     res.status(200).json({ message: 'Tipo de carga encontrado', data: tipoCargas })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
@@ -40,7 +40,7 @@ async function findOne (req: Request, res: Response): Promise<void> {
 
 async function add (req: Request, res: Response): Promise<void> {
   try {
-    const tipoCargas = em.create(tipoCarga, req.body.sanitizedInput)
+    const tipoCargas = em.create(TipoCarga, req.body.sanitizedInput)
     await em.flush()
     res.status(201).json({ message: 'Tipo de carga creado', data: tipoCargas })
   } catch (error: any) {
@@ -51,7 +51,7 @@ async function add (req: Request, res: Response): Promise<void> {
 async function update (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const tipoCargas = await em.findOneOrFail(tipoCarga, { id })
+    const tipoCargas = await em.findOneOrFail(TipoCarga, { id })
     em.assign(tipoCargas, req.body.sanitizedInput)
     await em.flush()
     res.status(200).json({ message: 'Tipo de carga actualizado', data: tipoCargas })
@@ -77,7 +77,7 @@ async function update (req: Request, res: Response) {
 async function remove (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const tipoCargas = em.getReference(tipoCarga, id)
+    const tipoCargas = em.getReference(TipoCarga, id)
     await em.removeAndFlush(tipoCargas)
     res.status(200).json({ message: 'Tipo de carga ' + req.params.id + ' eliminado con éxito' })
   } catch (error: any) {
