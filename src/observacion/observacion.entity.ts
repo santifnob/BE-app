@@ -1,5 +1,5 @@
 import { Entity, ManyToOne, Property, Rel } from '@mikro-orm/core'
-import { CategoriaDenuncia } from '../CategoriaDenuncia/categoriaDenuncia.entity.js'
+import { CategoriaDenuncia } from '../categoriaDenuncia/categoriaDenuncia.entity.js'
 import { BaseEntity } from '../shared/db/baseEntity.entity.js'
 
 @Entity()

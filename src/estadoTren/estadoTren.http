@@ -1,0 +1,30 @@
+### find all
+GET http://localhost:3000/api/estadoTren/
+
+### add 
+# @name estadoTrenCreated
+POST http://localhost:3000/api/estadoTren/
+Content-Type: application/json
+
+{
+    "nombre": "Vigente",
+    "fechaVigencia": "2023-10-01",
+}
+
+###ID
+@id = {{estadoTrenCreated.response.body.data.id}}
+
+### find one
+GET http://localhost:3000/api/estadoTren/{{id}}
+
+### update 
+PUT http://localhost:3000/api/estadoTren/{{id}}
+Content-Type: application/json
+
+{
+    "nombre": "Mantenimiento",
+    "fechaVigencia": "2024-09-20",
+}
+
+### delete
+DELETE http://localhost:3000/api/estadoTren/{{id}}

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { Observacion } from './observacion.entity.js'
-import { CategoriaDenuncia } from '../CategoriaDenuncia/categoriaDenuncia.entity.js'
+import { CategoriaDenuncia } from '../categoriaDenuncia/categoriaDenuncia.entity.js'
 import { orm } from '../shared/db/orm.js'
 
 const em = orm.em

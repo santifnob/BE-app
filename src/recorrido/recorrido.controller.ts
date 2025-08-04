@@ -32,7 +32,7 @@ async function findOne (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
     const recorrido = await em.findOneOrFail(Recorrido, { id })
-    res.status(200).json({ message: 'Recorrido encontrado', data: recorrido })
+    res.status(200).json({ message: 'El "Recorrido" ha sido encontrado: ', data: recorrido })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el recorrido', error: error.message })
   }

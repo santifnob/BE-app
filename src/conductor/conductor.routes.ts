@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { findAll, findOne, add, update, remove, sanitizeConductorInput } from './conductor.controller.js'
+import { findAll, findOne, add, update, remove } from './conductor.controller.js'
 
 export const conductorRouter = Router()
 
@@ -11,6 +11,6 @@ function asyncHandler (fn: Function) {
 
 conductorRouter.get('/', asyncHandler(findAll))
 conductorRouter.get('/:id', asyncHandler(findOne))
-conductorRouter.post('/', sanitizeConductorInput, asyncHandler(add))
-conductorRouter.put('/:id', sanitizeConductorInput, asyncHandler(update))
+conductorRouter.post('/', asyncHandler(add))
+conductorRouter.put('/:id', asyncHandler(update))
 conductorRouter.delete('/:id', asyncHandler(remove))

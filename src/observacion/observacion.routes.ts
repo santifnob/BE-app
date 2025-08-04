@@ -1,12 +1,5 @@
 import { Router } from 'express'
-import {
-  sanitizeObservacionInput,
-  findAll,
-  findOne,
-  add,
-  update,
-  remove
-} from './observacion.controller.js'
+import { sanitizeObservacionInput, findAll, findOne, add, update, remove } from './observacion.controller.js'
 
 export const observacionRouter = Router()
 
