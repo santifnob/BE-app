@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@mikro-orm/core':
-        specifier: 5.8.10
-        version: 5.8.10(@mikro-orm/mysql@5.8.10)
+        specifier: ^5.9.8
+        version: 5.9.8(@mikro-orm/mysql@5.9.8)
       '@mikro-orm/mysql':
-        specifier: 5.8.10
-        version: 5.8.10(@mikro-orm/core@5.8.10)
+        specifier: ^5.9.8
+        version: 5.9.8(@mikro-orm/core@5.9.8)
       '@mikro-orm/sql-highlighter':
         specifier: 1.0.1
         version: 1.0.1
@@ -73,8 +73,8 @@ packages:
     resolution: {integrity: sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==}
     deprecated: Use @eslint/object-schema instead
 
-  '@mikro-orm/core@5.8.10':
-    resolution: {integrity: sha512-wKOrUIGi3N7s8bZNfIY8R2aQCjoddU5XDPjpAnTCTsMc+kHaKuNigvcRLoMuRtadkk7VSpJbGawMC/P0uNnFLA==}
+  '@mikro-orm/core@5.9.8':
+    resolution: {integrity: sha512-bfTYInwc+EtPgLOxa5iBG5vKT1qq5swDcsc2F7Iu6sesBLKNputURA7qPmY6TCWQtSL/hvB3QjsCzY48LllD+w==}
     engines: {node: '>= 14.0.0'}
     peerDependencies:
       '@mikro-orm/better-sqlite': ^5.0.0
@@ -109,8 +109,8 @@ packages:
       '@mikro-orm/sqlite':
         optional: true
 
-  '@mikro-orm/knex@5.8.10':
-    resolution: {integrity: sha512-ZWZrtFsMtgr+jzZVPCIWllcohmcGLPaRIN26Id30FwuQ8qDgkvjlQAmTGtThklgcw3Gm3NvpenSS1RbefwpreA==}
+  '@mikro-orm/knex@5.9.8':
+    resolution: {integrity: sha512-Kitz11QY7Id37huNUfsxSkgnET8X/fuL861yUK9rJ8xrRiEakdm1r/lM1pLYcB/oikAphYLTgW+M/t3LoJb8aw==}
     engines: {node: '>= 14.0.0'}
     peerDependencies:
       '@mikro-orm/core': ^5.0.0
@@ -140,8 +140,8 @@ packages:
       sqlite3:
         optional: true
 
-  '@mikro-orm/mysql@5.8.10':
-    resolution: {integrity: sha512-bFVDPbylAgHKPB/zUULgo1FDAFvCURRF0Zs4aqYqkGvDj28dqfDJ6+b2I6QtJAbT0Futk/IhvkO/LuAXW9z58Q==}
+  '@mikro-orm/mysql@5.9.8':
+    resolution: {integrity: sha512-BvW3b2+oKVE5sm0DLPXDKudIDsTNANXqETfNJO7mMmgnD9t0A8ihVTSI4BS5XBkBDh0wy+wdB6KhYDDfRo+zew==}
     engines: {node: '>= 14.0.0'}
     peerDependencies:
       '@mikro-orm/core': ^5.0.0
@@ -1197,8 +1197,8 @@ packages:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
 
-  mikro-orm@5.8.10:
-    resolution: {integrity: sha512-XkrXxH220OO2d5AQy/UuXl+4b6/K8CcpT45ehqtLjeJTXPsGkTgFJoYw9b4aSRMq5bMqGNcLb9HAY80nPCrtjw==}
+  mikro-orm@5.9.8:
+    resolution: {integrity: sha512-iBku1gU9xkA2FCw2wy0K4x3EQzsRE52dYGkGUVQEthRmc/vIMBwXyiTAj+oARzXrkWqslFtlZA/2upeqZhMQlw==}
     engines: {node: '>= 14.0.0'}
 
   mime-db@1.52.0:
@@ -1810,21 +1810,21 @@ snapshots:
 
   '@humanwhocodes/object-schema@2.0.3': {}
 
-  '@mikro-orm/core@5.8.10(@mikro-orm/mysql@5.8.10)':
+  '@mikro-orm/core@5.9.8(@mikro-orm/mysql@5.9.8)':
     dependencies:
       acorn-loose: 8.3.0
       acorn-walk: 8.2.0
       dotenv: 16.3.1
       fs-extra: 11.1.1
       globby: 11.1.0
-      mikro-orm: 5.8.10
+      mikro-orm: 5.9.8
       reflect-metadata: 0.1.13
     optionalDependencies:
-      '@mikro-orm/mysql': 5.8.10(@mikro-orm/core@5.8.10)
+      '@mikro-orm/mysql': 5.9.8(@mikro-orm/core@5.9.8)
 
-  '@mikro-orm/knex@5.8.10(@mikro-orm/core@5.8.10)(mysql2@3.6.2)':
+  '@mikro-orm/knex@5.9.8(@mikro-orm/core@5.9.8)(mysql2@3.6.2)':
     dependencies:
-      '@mikro-orm/core': 5.8.10(@mikro-orm/mysql@5.8.10)
+      '@mikro-orm/core': 5.9.8(@mikro-orm/mysql@5.9.8)
       fs-extra: 11.1.1
       knex: 2.5.1(mysql2@3.6.2)
       sqlstring: 2.3.3
@@ -1835,10 +1835,10 @@ snapshots:
       - supports-color
       - tedious
 
-  '@mikro-orm/mysql@5.8.10(@mikro-orm/core@5.8.10)':
+  '@mikro-orm/mysql@5.9.8(@mikro-orm/core@5.9.8)':
     dependencies:
-      '@mikro-orm/core': 5.8.10(@mikro-orm/mysql@5.8.10)
-      '@mikro-orm/knex': 5.8.10(@mikro-orm/core@5.8.10)(mysql2@3.6.2)
+      '@mikro-orm/core': 5.9.8(@mikro-orm/mysql@5.9.8)
+      '@mikro-orm/knex': 5.9.8(@mikro-orm/core@5.9.8)(mysql2@3.6.2)
       mysql2: 3.6.2
     transitivePeerDependencies:
       - better-sqlite3
@@ -3113,7 +3113,7 @@ snapshots:
       braces: 3.0.3
       picomatch: 2.3.1
 
-  mikro-orm@5.8.10: {}
+  mikro-orm@5.9.8: {}
 
   mime-db@1.52.0: {}
 

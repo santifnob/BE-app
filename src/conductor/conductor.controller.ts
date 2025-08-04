@@ -20,7 +20,7 @@ function sanitizeConductorInput (req: Request, res: Response, next: NextFunction
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const conductores = await em.find(Conductor, {})
+    const conductores = await em.find(Conductor, {}, { populate: ['licencias'] })
     res.status(200).json({ message: 'Listado de los conductores:', data: conductores })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el listado de los conductores', error: error.message })
@@ -30,7 +30,7 @@ async function findAll (req: Request, res: Response): Promise<void> {
 async function findOne (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const conductor = await em.findOneOrFail(Conductor, { id })
+    const conductor = await em.findOneOrFail(Conductor, { id }, { populate: ['licencias'] })
     res.status(200).json({ message: 'El "Conductor" ha sido encontrado: ', data: conductor })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el "Conductor"', error: error.message })

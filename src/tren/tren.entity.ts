@@ -1,6 +1,6 @@
 import { Cascade, Collection, Entity, OneToMany, Property } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/db/baseEntity.entity.js'
-import { EstadoTren } from '../EstadoTren/estadoTren.entity.js'
+import { EstadoTren } from '../estadoTren/estadoTren.entity.js'
 
 @Entity()
 export class Tren extends BaseEntity {
