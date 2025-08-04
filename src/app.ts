@@ -10,6 +10,7 @@ import { catRouter } from './CategoriaDenuncia/categoriaDenunica.routes.js'
 import { tipoCargaRouter } from './tipoCarga/tipoCarga.routes.js'
 import { licenciaRouter } from './licencia/licencia.routes.js'
 import { estadoTrenRouter } from './EstadoTren/estadoTren.routes.js'
+import { observacionRouter } from './observacion/observacion.routes.js'
 
 const app = express()
 app.use(express.json())
@@ -28,6 +29,7 @@ app.use('/api/tipoCarga', tipoCargaRouter)
 app.use('/api/licencia', licenciaRouter)
 app.use('/api/conductor', conductorRouter)
 app.use('/api/estadoTren', estadoTrenRouter)
+app.use('/api/observaciones', observacionRouter)
 
 app.use((_, res) => {
   return res.status(404).send({ message: 'Ruta no encontrada' })

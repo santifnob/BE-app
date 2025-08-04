@@ -21,8 +21,8 @@ function sanitizeRecorridoInput (req: Request, res: Response, next: NextFunction
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const catsDenuncia = await em.find(CategoriaDenuncia, {})
-    res.status(200).json({ message: 'Listado de las categorias de denuncia: ', data: catsDenuncia })
+    const catsDenuncia = await em.find(CategoriaDenuncia, {}, { populate: ['observaciones'] })
+    res.status(200).json({ message: 'Categorias encontradas', data: catsDenuncia })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el listado de las categorias de denuncia', error: error.messagee })
   }
@@ -31,8 +31,8 @@ async function findAll (req: Request, res: Response): Promise<void> {
 async function findOne (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const catDenuncia = await em.findOneOrFail(CategoriaDenuncia, { id })
-    res.status(200).json({ message: 'La "Categoria de denuncia" ha sido encontrada: ', data: catDenuncia })
+    const catDenuncia = await em.findOneOrFail(CategoriaDenuncia, { id }, { populate: ['observaciones'] })
+    res.status(200).json({ message: 'Categoria encontrada', data: catDenuncia })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener la "Categoria de denuncia"', error: error.message })
   }
