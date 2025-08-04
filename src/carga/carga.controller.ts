@@ -33,7 +33,7 @@ async function findOne (req: Request, res: Response): Promise<void> {
     const carga = await em.findOneOrFail(Carga, { id })
     res.status(200).json({ message: 'La "Carga" ha sido encontrada: ', data: carga })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Error al obtener la "Carga"', error: error.message })
   }
 }
 
