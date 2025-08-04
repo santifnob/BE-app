@@ -31,7 +31,7 @@ async function findOne (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
     const tren = await em.findOneOrFail(Tren, id)
-    res.status(200).json({ message: 'Tren encontrado', data: tren })
+    res.status(200).json({ message: 'El "Tren" ha sido encontrado: ', data: tren })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el "Tren"', error: error.message })
   }
