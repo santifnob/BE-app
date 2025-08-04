@@ -1,5 +1,6 @@
-import { Entity, Property } from '@mikro-orm/core'
+import { Entity, OneToMany, Property, Collection, Cascade } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/db/baseEntity.entity.js'
+import { Observacion } from '../observacion/observacion.entity.js'
 
 @Entity()
 export class CategoriaDenuncia extends BaseEntity {
@@ -8,4 +9,7 @@ export class CategoriaDenuncia extends BaseEntity {
 
   @Property({ nullable: false })
     descripcion!: string
+
+  @OneToMany(() => Observacion, (observacion) => observacion.categoriaDenuncia, { cascade: [Cascade.ALL] })
+    observaciones = new Collection<Observacion>(this)
 }

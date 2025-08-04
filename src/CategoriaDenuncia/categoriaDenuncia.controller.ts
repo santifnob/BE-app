@@ -21,7 +21,7 @@ function sanitizeRecorridoInput (req: Request, res: Response, next: NextFunction
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const catsDenuncia = await em.find(CategoriaDenuncia, {})
+    const catsDenuncia = await em.find(CategoriaDenuncia, {}, { populate: ['observaciones'] })
     res.status(200).json({ message: 'Categorias encontradas', data: catsDenuncia })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
@@ -31,7 +31,7 @@ async function findAll (req: Request, res: Response): Promise<void> {
 async function findOne (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const catDenuncia = await em.findOneOrFail(CategoriaDenuncia, { id })
+    const catDenuncia = await em.findOneOrFail(CategoriaDenuncia, { id }, { populate: ['observaciones'] })
     res.status(200).json({ message: 'Categoria encontrada', data: catDenuncia })
   } catch (error: any) {
     res.status(500).json({ message: error.message })

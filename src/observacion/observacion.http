@@ -1,0 +1,34 @@
+### Obtener todas las observaciones
+GET http://localhost:3000/api/observaciones
+Content-Type: application/json
+
+
+### Obtener una observación por ID
+GET http://localhost:3000/api/observaciones/1
+Content-Type: application/json
+
+
+### Crear una nueva observación
+POST http://localhost:3000/api/observaciones
+Content-Type: application/json
+
+{
+  "observaciones": "Demora en el tren",
+  "fecha": "2025-08-03T10:00:00.000Z",
+  "idCategoria": 1
+}
+
+
+### Actualizar una observación existente
+PUT http://localhost:3000/api/observaciones/1
+Content-Type: application/json
+
+{
+  "observaciones": "Tren cancelado sin aviso",
+  "fecha": "2025-08-03T14:30:00.000Z",
+  "idCategoria": 2
+}
+
+
+### Eliminar una observación
+DELETE http://localhost:3000/api/observaciones/1
