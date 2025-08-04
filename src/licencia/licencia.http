@@ -1,0 +1,43 @@
+### GET ALL
+GET http://localhost:3000/api/licencia/
+
+### POST
+# @name licenciaCreated
+POST http://localhost:3000/api/licencia/
+Content-Type: application/json
+
+{
+    "fechaVencimiento": "2024-12-31",
+    "fechaHecho": "2023-10-01",
+    "estado": "activo",
+    "conductor": {
+        "id": 2,
+        "name": "Juan",
+        "apellido": "Perez"
+    }
+}
+
+### ID
+@id = {{licenciaCreated.response.body.data.id}} 
+
+### FIND ONE
+GET http://localhost:3000/api/licencia/{{id}}
+
+### PUT
+PUT http://localhost:3000/api/licencia/{{id}}
+Content-Type: application/json
+
+{
+    "fechaVencimiento": "2022-12-31",
+    "fechaHecho": "2021-10-01",
+    "estado": "vencida",
+    "conductor": {
+        "id": 1,
+        "name": "Norberto",
+        "apellido": "Perez"
+    }
+}
+
+### DELETE
+@idToDelete = {{licenciaCreated.response.body.data.id}} 
+DELETE http://localhost:3000/api/licencia/{{id}}

@@ -8,6 +8,8 @@ import { trenRuta } from './tren/tren.ruta.js'
 import { conductorRouter } from './conductor/conductor.routes.js'
 import { catRouter } from './CategoriaDenuncia/categoriaDenunica.routes.js'
 import { tipoCargaRouter } from './tipoCarga/tipoCarga.routes.js'
+import { licenciaRouter } from './licencia/licencia.routes.js'
+import { estadoTrenRouter } from './EstadoTren/estadoTren.routes.js'
 
 const app = express()
 app.use(express.json())
@@ -23,8 +25,9 @@ app.use('/api/recorrido', recorridoRouter)
 app.use('/api/tren', trenRuta)
 app.use('/api/categoriaDenuncia', catRouter)
 app.use('/api/tipoCarga', tipoCargaRouter)
-
+app.use('/api/licencia', licenciaRouter)
 app.use('/api/conductor', conductorRouter)
+app.use('/api/estadoTren', estadoTrenRouter)
 
 app.use((_, res) => {
   return res.status(404).send({ message: 'Ruta no encontrada' })
