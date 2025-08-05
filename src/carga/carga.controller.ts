@@ -12,11 +12,9 @@ function sanitizeCargaInput (req: Request, res: Response, next: NextFunction): v
     idTipoCarga: req.body.idTipoCarga
   }
 
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] === undefined) {
-      req.body.sanitizedInput[key] = undefined
-    }
-  })
+  req.body.sanitizedInput = Object.fromEntries(
+    Object.entries(req.body.sanitizedInput).filter(([_, value]) => value !== undefined)
+  )
   next()
 }
 

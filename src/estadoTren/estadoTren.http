@@ -9,6 +9,7 @@ Content-Type: application/json
 {
     "nombre": "Vigente",
     "fechaVigencia": "2023-10-01",
+    "idTren": 2
 }
 
 ###ID
@@ -23,7 +24,7 @@ Content-Type: application/json
 
 {
     "nombre": "Mantenimiento",
-    "fechaVigencia": "2024-09-20",
+    "fechaVigencia": "2024-09-20"
 }
 
 ### delete

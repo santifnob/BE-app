@@ -10,11 +10,9 @@ function sanitizeRecorridoInput (req: Request, res: Response, next: NextFunction
     titulo: req.body.titulo
   }
 
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] === undefined) {
-      req.body.sanitizedInput[key] = undefined
-    }
-  })
+  req.body.sanitizedInput = Object.fromEntries(
+    Object.entries(req.body.sanitizedInput).filter(([_, value]) => value !== undefined)
+  )
 
   next()
 }

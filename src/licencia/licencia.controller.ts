@@ -8,17 +8,16 @@ const em = orm.em
 function sanitizeLicenciaInput (req: Request, res: Response, next: NextFunction): void {
   req.body.sanitizedInput = {
     fechaVencimiento: req.body.fechaVencimiento,
-    fechaHecho: req.body.fechaVencimiento,
+    fechaHecho: req.body.fechaHecho,
     estado: req.body.estado,
     idConductor: req.body.idConductor
   }
   // more checks here
 
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] === undefined) {
-      req.body.sanitizedInput[key] = undefined
-    }
-  })
+  req.body.sanitizedInput = Object.fromEntries(
+    Object.entries(req.body.sanitizedInput).filter(([_, value]) => value !== undefined)
+  )
+
   next()
 }
 
@@ -62,9 +61,9 @@ async function update (req: Request, res: Response): Promise<void> {
       req.body.sanitizedInput.conductor = conductor
       req.body.sanitizedInput.idConductor = undefined
     }
-
     const id = Number.parseInt(req.params.id)
     const licenciaToUpdate = await em.findOneOrFail(Licencia, { id })
+
     em.assign(licenciaToUpdate, req.body.sanitizedInput)
     await em.flush()
     Object.assign(req.body.sanitizedInput, licenciaToUpdate) // esto porque sino licenciaUpdated no muestra los datos del conductor
