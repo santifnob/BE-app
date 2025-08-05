@@ -104,7 +104,7 @@ async function update (req: Request, res: Response): Promise<void> {
 async function remove (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const viaje = await em.findOneOrFail(Viaje, { id })
+    const viaje = await em.findOneOrFail(Viaje, { id }, { populate: ['observaciones', 'lineasCarga'] })
     await em.removeAndFlush(viaje)
     res.status(200).json({ message: 'El "Viaje" ha sido eliminado con exito: ', data: viaje })
   } catch (error: any) {
