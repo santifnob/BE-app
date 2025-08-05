@@ -20,14 +20,13 @@ Content-Type: application/json
 GET http://localhost:3000/api/licencia/{{id}}
 
 ### PUT
-PUT http://localhost:3000/api/licencia/2
+PUT http://localhost:3000/api/licencia/3
 Content-Type: application/json
 
 {
-    "fechaVencimiento": "2022-12-31",
-    "estado": "atyjn"
+    "fechaVencimiento": "2020-12-31"
 }
 
 ### DELETE
 @idToDelete = {{licenciaCreated.response.body.data.id}} 
-DELETE http://localhost:3000/api/licencia/{{id}}
+DELETE http://localhost:3000/api/licencia/4

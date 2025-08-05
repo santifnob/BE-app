@@ -24,9 +24,7 @@ PUT http://localhost:3000/api/carga/{{id}}
 Content-Type: application/json
 
 {
-    "name": "Carbon",
-    "tara": 100,
-    "idTipoCarga": 1
+    "name": "asdasd"
 }
 
 ### DELETE
