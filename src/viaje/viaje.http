@@ -1,0 +1,43 @@
+### find all 
+GET http://localhost:3000/api/viaje
+Content-Type: application/json
+
+
+### Obtener un viaje
+GET http://localhost:3000/api/viaje/{{id}}
+Content-Type: application/json
+
+
+
+### Crear un viaje
+# @name viajeCreated
+POST http://localhost:3000/api/viaje
+Content-Type: application/json
+
+{
+  "fechaIni": "2025-08-03T10:00:00.000Z",
+  "fechaFin": "2025-09-03T10:00:00.000Z",
+  "estado": "vigente",
+  "idTren": 2,
+  "idRecorrido": 3,
+  "idConductor": 2
+}
+
+###ID
+@id = {{viajeCreated.response.body.data.id}} 
+
+### Actualizar un viaje existente
+PUT http://localhost:3000/api/viaje/{{id}}
+Content-Type: application/json
+
+{
+  "fechaIni": "2025-08-03T10:00:00.000Z",
+  "fechaFin": "2026-09-03T10:00:00.000Z",
+  "estado": "vencido",
+  "idRecorrido": 3,
+  "idConductor": 3
+}
+
+
+### Eliminar un viaje
+DELETE http://localhost:3000/api/viaje/{{id}}

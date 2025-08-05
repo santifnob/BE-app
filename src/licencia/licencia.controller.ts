@@ -76,7 +76,7 @@ async function update (req: Request, res: Response): Promise<void> {
 async function remove (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const licencia = em.getReference(Licencia, id)
+    const licencia = await em.findOneOrFail(Licencia, { id })
     await em.removeAndFlush(licencia)
     res.status(200).json({ message: 'La "Licencia de conductor" ha sido eliminada con exito: ', data: licencia })
   } catch (error: any) {

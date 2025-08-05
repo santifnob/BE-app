@@ -10,8 +10,8 @@ function sanitizarTrenInput (req: Request, res: Response, next: NextFunction): v
     modelo: req.body.modelo
   }
 
-  req.body.sanitizedInput = Object.fromEntries(
-    Object.entries(req.body.sanitizedInput).filter(([_, value]) => value !== undefined)
+  req.body.sanitizarInput = Object.fromEntries(
+    Object.entries(req.body.sanitizarInput).filter(([_, value]) => value !== undefined)
   )
   next()
 }
