@@ -1,15 +1,15 @@
-### Obtener todas las observaciones
-GET http://localhost:3000/api/observaciones
+### Obtener todas las observacion
+GET http://localhost:3000/api/observacion
 Content-Type: application/json
 
 
 ### Obtener una observación por ID
-GET http://localhost:3000/api/observaciones/1
+GET http://localhost:3000/api/observacion/1
 Content-Type: application/json
 
 
 ### Crear una nueva observación
-POST http://localhost:3000/api/observaciones
+POST http://localhost:3000/api/observacion
 Content-Type: application/json
 
 {
@@ -20,7 +20,7 @@ Content-Type: application/json
 
 
 ### Actualizar una observación existente
-PUT http://localhost:3000/api/observaciones/1
+PUT http://localhost:3000/api/observacion/1
 Content-Type: application/json
 
 {
@@ -31,4 +31,4 @@ Content-Type: application/json
 
 
 ### Eliminar una observación
-DELETE http://localhost:3000/api/observaciones/1
+DELETE http://localhost:3000/api/observacion/1

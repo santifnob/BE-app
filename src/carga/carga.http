@@ -7,18 +7,14 @@ POST http://localhost:3000/api/carga/
 Content-Type: application/json
 
 {
-    "fechaVencimiento": "2024-12-31",
-    "fechaHecho": "2023-10-01",
-    "estado": "activo",
-    "conductor": {
-        "id": 2,
-        "name": "Juan",
-        "apellido": "Perez"
-    }
+    "name": "Carbon",
+    "tara": 100,
+    "idTipoCarga": 1
+
 }
 
 ### ID
-@id = {cargaCreated.response.body.data.id}
+@id = {{cargaCreated.response.body.data.id}}
 
 ### FIND ONE
 GET http://localhost:3000/api/carga/{{id}}
@@ -28,16 +24,11 @@ PUT http://localhost:3000/api/carga/{{id}}
 Content-Type: application/json
 
 {
-    "fechaVencimiento": "2022-12-31",
-    "fechaHecho": "2021-10-01",
-    "estado": "vencida",
-    "conductor": {
-        "id": 1,
-        "name": "Norberto",
-        "apellido": "Perez"
-    }
+    "name": "Carbon",
+    "tara": 100,
+    "idTipoCarga": 1
 }
 
 ### DELETE
-@idToDelete = {cargaCreated.response.body.data.id}
+@idToDelete = {{cargaCreated.response.body.data.id}}
 DELETE http://localhost:3000/api/carga/{{id}}
