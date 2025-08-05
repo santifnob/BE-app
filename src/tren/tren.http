@@ -5,13 +5,14 @@ GET http://localhost:3000/api/tren/
 # @name trenCreated
 POST http://localhost:3000/api/tren/
 Content-Type: application/json
+
 {
   "color": "Naranja",
   "modelo": "Ben 10"
 }
 
 ### ID
-@id = {trenCreated.response.body.data.id}
+@id = {{trenCreated.response.body.data.id}}
 
 ### FIND ONE
 GET http://localhost:3000/api/tren/{{id}}
@@ -19,11 +20,12 @@ GET http://localhost:3000/api/tren/{{id}}
 ### PUT
 PUT http://localhost:3000/api/tren/{{id}}
 Content-Type: application/json
+
 {
   "color": "Rosa",
   "modelo": "Peppa Pig"
 }
 
 ### DELETE
-@idToDelete = {trenCreated.response.body.data.id}
+@idToDelete = {{trenCreated.response.body.data.id}}
 DELETE http://localhost:3000/api/tren/{{id}}

@@ -1,0 +1,24 @@
+### POST
+# @name lineaCargaCreated
+POST http://localhost:3000/api/lineaCarga/
+Content-Type: application/json
+
+{
+    "cantidadVagon": 10,
+    "idCarga": 2
+}
+
+### ID
+@id = {{lineaCargaCreated.response.body.data.id}} 
+
+### PUT
+PUT http://localhost:3000/api/lineaCarga/{{id}}
+Content-Type: application/json
+
+{
+    "cantidadVagon": 15
+}
+
+### DELETE
+@idToDelete = {{lineaCargaCreated.response.body.data.id}} 
+DELETE http://localhost:3000/api/lineaCarga/{{id}}

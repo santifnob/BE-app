@@ -10,16 +10,15 @@ function sanitizeConductorInput (req: Request, res: Response, next: NextFunction
     apellido: req.body.apellido
   }
 
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] === undefined) {
-      req.body.sanitizedInput[key] = undefined
-    }
-  })
+  req.body.sanitizedInput = Object.fromEntries(
+    Object.entries(req.body.sanitizedInput).filter(([_, value]) => value !== undefined)
+  )
   next()
 }
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
+    console.log('aca')
     const conductores = await em.find(Conductor, {}, { populate: ['licencias'] })
     res.status(200).json({ message: 'Listado de los conductores:', data: conductores })
   } catch (error: any) {

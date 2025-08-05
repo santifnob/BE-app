@@ -10,17 +10,15 @@ function sanitizarTrenInput (req: Request, res: Response, next: NextFunction): v
     modelo: req.body.modelo
   }
 
-  Object.keys(req.body.sanitizarInput).forEach(key => {
-    if (req.body.sanitizarInput[key] === undefined) {
-      req.body.sanitizarInput[key] = undefined
-    }
-  })
+  req.body.sanitizedInput = Object.fromEntries(
+    Object.entries(req.body.sanitizedInput).filter(([_, value]) => value !== undefined)
+  )
   next()
 }
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const trenes = await em.find(Tren, {})
+    const trenes = await em.find(Tren, {}, { populate: ['estadosTren'] })
     res.status(200).json({ message: 'Listado de los trenes: ', data: trenes })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el listado de los trenes', error: error.message })
@@ -30,7 +28,7 @@ async function findAll (req: Request, res: Response): Promise<void> {
 async function findOne (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const tren = await em.findOneOrFail(Tren, id)
+    const tren = await em.findOneOrFail(Tren, id, { populate: ['estadosTren'] })
     res.status(200).json({ message: 'El "Tren" ha sido encontrado: ', data: tren })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el "Tren"', error: error.message })
