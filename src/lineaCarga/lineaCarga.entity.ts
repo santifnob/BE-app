@@ -1,6 +1,7 @@
 import { Entity, ManyToOne, Property, Rel } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/db/baseEntity.entity.js'
 import { Carga } from '../carga/carga.entity.js'
+import { Viaje } from '../viaje/viaje.entity.js'
 
 @Entity()
 export class LineaCarga extends BaseEntity {
@@ -10,9 +11,6 @@ export class LineaCarga extends BaseEntity {
   @ManyToOne(() => Carga, { nullable: false })
     carga!: Rel<Carga>
 
-  // Viaje
-
-//   calcTaraTotal (): number {
-//     return this.carga.tara * this.cantidadVagon
-//   }
+  @ManyToOne(() => Viaje, { nullable: false })
+    viaje!: Rel<Viaje>
 }

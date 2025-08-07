@@ -5,7 +5,8 @@ Content-Type: application/json
 
 {
     "cantidadVagon": 10,
-    "idCarga": 2
+    "idCarga": 2,
+    "idViaje": 8
 }
 
 ### ID

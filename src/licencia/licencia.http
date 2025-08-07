@@ -14,7 +14,7 @@ Content-Type: application/json
 }
 
 ### ID
-@id = {{licenciaCreated.response.body.data.id}} 
+@id = {licenciaCreated.response.body.data.id}
 
 ### FIND ONE
 GET http://localhost:3000/api/licencia/{{id}}
@@ -28,5 +28,5 @@ Content-Type: application/json
 }
 
 ### DELETE
-@idToDelete = {{licenciaCreated.response.body.data.id}} 
-DELETE http://localhost:3000/api/licencia/4
+@idToDelete = {licenciaCreated.response.body.data.id}
+DELETE http://localhost:3000/api/licencia/5
