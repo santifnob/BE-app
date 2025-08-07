@@ -15,4 +15,7 @@ export class Recorrido extends BaseEntity {
 
   @OneToMany(() => Viaje, (viajes) => viajes.recorrido, { cascade: [Cascade.ALL] })
     viajes = new Collection<Viaje>(this)
+
+  @Property({ nullable: false })
+    estado!: string
 }

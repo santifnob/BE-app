@@ -16,4 +16,7 @@ export class Carga extends BaseEntity {
 
   @OneToMany(() => LineaCarga, (lineaCarga) => lineaCarga.carga, { cascade: [Cascade.ALL] })
     lineaCargas = new Collection<LineaCarga>(this)
+
+  @Property({ nullable: false })
+    estado!: string
 }

@@ -12,4 +12,7 @@ export class CategoriaDenuncia extends BaseEntity {
 
   @OneToMany(() => Observacion, (observaciones) => observaciones.categoriaDenuncia, { cascade: [Cascade.ALL] })
     observaciones = new Collection<Observacion>(this)
+
+  @Property({ nullable: false })
+    estado!: string
 }

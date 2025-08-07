@@ -16,4 +16,7 @@ export class Conductor extends BaseEntity {
 
   @OneToMany(() => Viaje, (Viaje) => Viaje.conductor, { cascade: [Cascade.ALL] })
     viajes = new Collection<Viaje>(this)
+
+  @Property({ nullable: false })
+    estado!: string
 }
