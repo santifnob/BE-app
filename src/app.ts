@@ -38,6 +38,15 @@ app.use((_, res) => {
 }
 )
 
+//test para el login
+app.post('api/auth/login', (req,res) => {
+  const {email, password} = req.body
+  if (email === 'admin@admin.com' && password === 'admin') {
+    const data = { user: 'admin', role: 'admin', token: 'token' }
+    return res.status(200).send({ message: 'Login exitoso', data })
+  }
+})
+
 await syncSchema() // nunca en produccion
 
 app.listen(3000, () => {
