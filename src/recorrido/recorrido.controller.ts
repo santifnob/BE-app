@@ -61,7 +61,7 @@ async function update (req: Request, res: Response): Promise<void> {
 async function remove (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const recorrido = em.getReference(Recorrido, id)
+    const recorrido = await em.findOneOrFail(Recorrido, { id })
     await em.removeAndFlush(recorrido)
     res.status(200).json({ message: 'El "Recorrido" ha sido eliminado con exito: ', data: recorrido })
   } catch (error: any) {

@@ -61,7 +61,7 @@ async function update (req: Request, res: Response): Promise<void> {
 async function remove (req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
-    const catDenuncia = em.getReference(CategoriaDenuncia, id)
+    const catDenuncia = await em.findOneOrFail(CategoriaDenuncia, { id }, { populate: ['observaciones'] })
     await em.removeAndFlush(catDenuncia)
     res.status(200).json({ message: 'La "Categoria de denuncia" ha sido eliminada con exito: ', data: catDenuncia })
   } catch (error: any) {
