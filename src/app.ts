@@ -1,6 +1,7 @@
 import 'reflect-metadata'
 import express from 'express'
 import cors from 'cors'
+import jwt from 'jsonwebtoken'
 import { trenRouter } from './tren/tren.routes.js'
 import { orm, syncSchema } from './shared/db/orm.js'
 import { RequestContext } from '@mikro-orm/core'
@@ -18,19 +19,17 @@ import { viajeRouter } from './viaje/viaje.routes.js'
 const app = express()
 app.use(express.json())
 
-
 app.use(cors({
   origin: 'http://localhost:5173',
   methods: ['POST', 'GET', 'DELETE', 'PUT'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }))
 
-app.options('*', cors());
+app.options('*', cors())
 
 app.use((req, res, next) => {
   RequestContext.create(orm.em, next)
 })
-
 
 app.use('/api/carga', cargaRouter) // Gonza
 app.use('/api/categoriaDenuncia', catRouter) // Carlos
@@ -44,20 +43,37 @@ app.use('/api/tipoCarga', tipoCargaRouter) // Gonza
 app.use('/api/tren', trenRouter) // Gonza
 app.use('/api/viaje', viajeRouter) // Todos
 
-//test para el login
-app.post('/api/auth/login', (req,res) => {
-  const {email, password} = req.body
-  console.log(email, password)
-  if (email === 'admin@admin.com' && password === 'admin') {
-    const userData = { role: 'admin', token: 'token' }
-    return res.status(200).json({ message: 'Login exitoso', userData })
+export const secretKey = 'llaveTemporal' // variables que se deberian guardar en un archivo .env
+const ADMIN_EMAIL = 'admin@admin.com'
+const ADMIN_PASS = 'admin'
+
+// test para el login
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body.user
+  let user = null
+
+  if (email !== ADMIN_EMAIL) {
+    user = { id: 1, role: 'conductor', password: 'conductorPass', email: 'conductor@email.com' }// Si no es admin, entonces buscar conductor en la base de datos (Hardcodeado por ahora)
+  } else { user = { id: 0, role: 'admin', password: ADMIN_PASS, email: ADMIN_EMAIL } } // Realmente se tendría que buscar en la base de datos
+
+  if (email === user.email && password === user.password) {
+    const token = jwt.sign({ userId: user.id, role: user.role }, secretKey, { expiresIn: '1h' })
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: false, // por ahora se mantiene sin https
+      sameSite: 'strict',
+      maxAge: 3600000 // 1 hora
+    })
+
+    return res.status(200).json({ message: 'Login exitoso' })
   }
 
-  return res.status(401).send({message: 'Credenciales invalidas'})
+  return res.status(401).json({ message: 'Credenciales invalidas' })
 })
 
 app.use((_, res) => {
-  return res.status(404).send({ message: 'Ruta no encontrada' })
+  return res.status(404).json({ message: 'Ruta no encontrada' })
 }
 )
 
