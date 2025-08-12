@@ -64,7 +64,8 @@ app.post('/api/auth/login', (req, res) => {
     res.cookie('token', token, {
       httpOnly: true,
       secure: false, // por ahora se mantiene sin https
-      sameSite: 'lax'
+      sameSite: 'lax',
+      maxAge: 3600000 // 1 hora
     })
     
     return res.status(200).json({ message: 'Login exitoso', userData: { id: user.id, role: user.role } })
