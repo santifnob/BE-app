@@ -15,6 +15,7 @@ import { catRouter } from './categoriaDenuncia/categoriaDenunica.routes.js'
 import { observacionRouter } from './observacion/observacion.routes.js'
 import { lineaCargaRouter } from './lineaCarga/lineaCarga.routes.js'
 import { viajeRouter } from './viaje/viaje.routes.js'
+import { authenticateToken } from './middlewares/authMiddlewares.js'
 
 const app = express()
 app.use(express.json())
@@ -66,10 +67,14 @@ app.post('/api/auth/login', (req, res) => {
       maxAge: 3600000 // 1 hora
     })
 
-    return res.status(200).json({ message: 'Login exitoso' })
+    return res.status(200).json({ message: 'Login exitoso', userData: { id: user.id, role: user.role } })
   }
 
   return res.status(401).json({ message: 'Credenciales invalidas' })
+})
+
+app.get('/api/auth/check', authenticateToken, (req, res) => {
+  res.status(200).json({ message: 'Token valido', userData: req.body.user}) // Validacion justamente hecha en el middleware authenticateToken
 })
 
 app.use((_, res) => {
