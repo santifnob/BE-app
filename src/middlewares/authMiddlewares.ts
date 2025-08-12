@@ -1,16 +1,16 @@
 import { secretKey } from '../app.js'
 import { NextFunction, Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken' 
 
-export function authenticateToken (req: Request, res: Response, next: NextFunction): void {
+export function authenticateToken (req: Request, res: Response, next: NextFunction): Response | undefined {
   const token = req.cookies.token
 
-  if (token === undefined) {
-    res.status(401).json({ message: 'Token no proporcionado' })
+  if (!token) {
+    return res.status(401).send('Token no proporcionado')
   }
 
   jwt.verify(token, secretKey, (err: jwt.VerifyErrors | null, payload: string | jwt.JwtPayload | undefined) => {
-    if (err != null) return res.status(403).json({ message: 'Token invalido' })
+    if (err != null) return res.status(403).send('Token invalido')
 
     req.body.user = payload // {role , userId}
 
@@ -19,9 +19,9 @@ export function authenticateToken (req: Request, res: Response, next: NextFuncti
 }
 
 export function authorizeRole(role: string): Function {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return (req: Request, res: Response, next: NextFunction): Response | undefined => {
     if(req.body.user.role !== role) {
-      res.status(403).json({message: 'No tienes permisos para acceder a este recurso'})
+     return res.status(403).json({message: 'No tienes permisos para acceder a este recurso'})
     }
     next()
   }
