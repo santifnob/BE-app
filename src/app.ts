@@ -74,6 +74,16 @@ app.post('/api/auth/login', (req, res) => {
   return res.status(401).json({ message: 'Credenciales invalidas' })
 })
 
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: false,
+    sameSite: 'lax'
+  })
+
+  res.status(200).json( { message: 'Logout exitoso'} )
+})
+
 app.get('/api/auth/check', authenticateToken, (req, res) => {
   return res.status(200).json({ message: 'Token valido', userData: req.body.user}) // Validacion justamente hecha en el middleware authenticateToken
 })
