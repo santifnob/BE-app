@@ -8,7 +8,10 @@ Content-Type: application/json
 
 {
     "name": "tomas",
-    "apellido": "castel"
+    "apellido": "castel",
+    "estado": "activo",
+    "email": "cond@email.com",
+    "password": "123"
 }
 
 ### ID

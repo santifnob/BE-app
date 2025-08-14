@@ -17,6 +17,7 @@ import { observacionRouter } from './observacion/observacion.routes.js'
 import { lineaCargaRouter } from './lineaCarga/lineaCarga.routes.js'
 import { viajeRouter } from './viaje/viaje.routes.js'
 import { authenticateToken } from './middlewares/authMiddlewares.js'
+import { findOneByMail } from './conductor/conductor.controller.js'
 
 const app = express()
 app.use(express.json())
@@ -50,15 +51,16 @@ const ADMIN_EMAIL = 'admin@admin.com'
 const ADMIN_PASS = 'admin'
 
 // test para el login
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body.user
   let user = null
 
   if (email !== ADMIN_EMAIL) {
-    user = { id: 1, role: 'conductor', password: 'conductorPass', email: 'conductor@email.com' }// Si no es admin, entonces buscar conductor en la base de datos (Hardcodeado por ahora)
-  } else { user = { id: 0, role: 'admin', password: ADMIN_PASS, email: ADMIN_EMAIL } } // Realmente se tendría que buscar en la base de datos
+    const conductor = await findOneByMail(email) 
+    user = conductor? { id: conductor.id, role: 'conductor', email: conductor.email, password: conductor.password } : undefined 
+  } else { user = { id: 0, role: 'admin', password: ADMIN_PASS, email: ADMIN_EMAIL } }
 
-  if (email === user.email && password === user.password) {
+  if (user && email === user.email && password === user.password) {
     const token = jwt.sign({ userId: user.id, role: user.role }, secretKey, { expiresIn: '1h' })
 
     res.cookie('token', token, {

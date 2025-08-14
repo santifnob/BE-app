@@ -7,7 +7,10 @@ const em = orm.em
 function sanitizeConductorInput (req: Request, res: Response, next: NextFunction): void {
   req.body.sanitizedInput = {
     name: req.body.name,
-    apellido: req.body.apellido
+    apellido: req.body.apellido,
+    estado: req.body.estado,
+    password: req.body.password,
+    email: req.body.email
   }
 
   req.body.sanitizedInput = Object.fromEntries(
@@ -80,6 +83,15 @@ async function remove (req: Request, res: Response): Promise<void> {
     res.status(200).json({ message: 'El "Conductor" ha sido eliminado con exito: ', data: conductor })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al eliminar el "Condcutor"', error: error.message })
+  }
+}
+
+export async function findOneByMail(email: string): Promise<Conductor | undefined>{
+  try {
+    const conductor = await em.findOneOrFail(Conductor, { email }, { strict: true })
+    return conductor 
+  } catch (error: any) {
+    return undefined
   }
 }
 

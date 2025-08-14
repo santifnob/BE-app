@@ -11,6 +11,12 @@ export class Conductor extends BaseEntity {
   @Property({ nullable: false })
     apellido!: string
 
+  @Property( { nullable: false , unique: true } )
+    email!: string
+
+  @Property({ nullable: false })
+    password!: string
+
   @OneToMany(() => Licencia, (licencia) => licencia.conductor, { cascade: [Cascade.ALL] })
     licencias = new Collection<Licencia>(this)
 
