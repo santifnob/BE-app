@@ -15,7 +15,9 @@ export class Viaje extends BaseEntity {
     fechaFin!: Date
 
   @Property({ nullable: false })
-    estado!: string
+    estado!: string //cambiar el atributo a rechazado que contiene un booleano
+
+  //conductor asignado atributo aparte 
 
   @ManyToOne(() => Tren, { nullable: false })
     tren!: Rel<Tren>

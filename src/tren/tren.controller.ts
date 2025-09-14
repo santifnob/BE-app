@@ -18,8 +18,19 @@ function sanitizarTrenInput (req: Request, res: Response, next: NextFunction): v
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const trenes = await em.find(Tren, {}, { populate: ['estadosTren'] })
-    res.status(200).json({ message: 'Listado de los trenes: ', data: trenes })
+    const trenes = await em.find(Tren, {}, {
+      populate: ['estadosTren']
+    })
+    
+    const trenesConEstado = trenes.map((tren) => {
+      const estados = tren.estadosTren || []
+      const lastEstado = estados.toArray().sort((e1, e2) => {
+        return e2.fechaVigencia.getTime() - e1.fechaVigencia.getTime()
+      })[0]
+      return { ...tren, estadoActual: lastEstado}
+    })
+
+    res.status(200).json({ message: 'Listado de los trenes: ', data: trenesConEstado })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el listado de los trenes', error: error.message })
   }

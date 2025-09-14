@@ -7,9 +7,9 @@ POST http://localhost:3000/api/estadoTren/
 Content-Type: application/json
 
 {
-    "nombre": "Vigente",
+    "nombre": "Reacondicionado",
     "fechaVigencia": "2023-10-01",
-    "idTren": 2
+    "idTren": 11
 }
 
 ###ID
