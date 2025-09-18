@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { Tren } from './tren.entity.js'
 import { orm } from '../shared/db/orm.js'
+import { read } from 'fs'
 
 const em = orm.em
 
@@ -19,15 +20,14 @@ function sanitizarTrenInput (req: Request, res: Response, next: NextFunction): v
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
     
-    const limit = Number(req.body.limit) || 10
-    const cursor = req.body.cursor ? Number(req.body.cursor) : null
-
+    const limit = Number(req.query.limit) || 10
+    const cursor = req.query.cursor ? Number(req.query.cursor) : null
     // Condición para traer solo registros después del cursor
-    const where = cursor ? { id: { $gt: cursor } } : {}
+    const where = cursor ? { id: { $lt: cursor } } : {}
 
     let trenes = await em.find(Tren, where, {
       populate: ['estadosTren'],
-      orderBy: { id: 'asc' },
+      orderBy: { id: 'desc' }, // 'asc' o 'desc' <-  valor por defecto 'desc'
       limit: limit + 1, // pedimos uno más para saber si hay next page
     })
 
