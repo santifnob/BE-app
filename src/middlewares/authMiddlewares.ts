@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 
 export function authenticateToken (req: Request, res: Response, next: NextFunction): Response | undefined {
   const token = req.cookies.token
-
+  console.log(token)
   if (!token) {
     return res.status(401).send('Token no proporcionado')
   }
