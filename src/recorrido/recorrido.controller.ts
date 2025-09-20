@@ -19,12 +19,37 @@ function sanitizeRecorridoInput (req: Request, res: Response, next: NextFunction
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const recorridos = await em.find(Recorrido, {})
-    res.status(200).json({ message: 'Listado de los recorridos: ', data: recorridos })
+    const limitParam = Number(req.query.limit)
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+
+    const cursorParam = req.query.cursor
+    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+
+    const where = cursor ? { id: { $lt: cursor } } : {}
+
+    let recorridos = await em.find(Recorrido, where, {
+      orderBy: { id: 'desc' },       // mismos criterios de orden
+      limit: limit + 1,               // pedimos uno extra
+      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+    })
+
+    const hasNextPage = recorridos.length > limit
+    recorridos = recorridos.slice(0, limit)
+
+    res.status(200).json({
+      message: 'Listado de los recorridos',
+      items: recorridos,
+      nextCursor: hasNextPage ? recorridos.at(-1)!.id : null,
+      hasNextPage,
+    })
   } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener el listado de los recorridos', error: error.message })
+    res.status(500).json({
+      message: 'Error al obtener el listado de los recorridos',
+      error: error.message,
+    })
   }
 }
+
 
 async function findOne (req: Request, res: Response): Promise<void> {
   try {
