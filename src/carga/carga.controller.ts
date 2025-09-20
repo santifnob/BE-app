@@ -18,12 +18,45 @@ function sanitizeCargaInput (req: Request, res: Response, next: NextFunction): v
   next()
 }
 
-async function findAll (req: Request, res: Response): Promise<void> {
+/*async function findAll (req: Request, res: Response): Promise<void> {
   try {
     const carga = await em.find(Carga, {}, { populate: ['lineaCargas', 'tipoCarga'] }) // sacar despues lineasCargas
     res.status(200).json({ message: 'Listado de las cargas: ', data: carga })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el listado de las cargas', error: error.message })
+  }
+}*/
+
+async function findAll (req: Request, res: Response): Promise<void> {
+  try {
+    const limitParam = Number(req.query.limit)
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+
+    const cursorParam = req.query.cursor
+    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+
+    const where = cursor ? { id: { $lt: cursor } } : {}
+
+    let cargas = await em.find(Carga, where, {
+      orderBy: { id: 'desc' },       // mismos criterios de orden
+      limit: limit + 1,               // pedimos uno extra
+      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+    })
+
+    const hasNextPage = cargas.length > limit
+    cargas = cargas.slice(0, limit)
+
+    res.status(200).json({
+      message: 'Listado de las cargas',
+      items: cargas,
+      nextCursor: hasNextPage ? cargas.at(-1)!.id : null,
+      hasNextPage,
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      message: 'Error al obtener el listado de las cargas',
+      error: error.message,
+    })
   }
 }
 
