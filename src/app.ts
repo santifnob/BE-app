@@ -43,7 +43,7 @@ app.use('/api/licencia', licenciaRouter) // Santi
 app.use('/api/observacion', observacionRouter) // Carlos
 app.use('/api/recorrido', recorridoRouter) // Santi
 app.use('/api/tipoCarga', tipoCargaRouter) // Gonza
-app.use('/api/tren', authenticateToken,trenRouter) // Gonza
+app.use('/api/tren', authenticateToken, trenRouter) // Gonza
 app.use('/api/viaje', viajeRouter) // Todos
 
 export const secretKey = 'llaveTemporal' // variables que se deberian guardar en un archivo .env
