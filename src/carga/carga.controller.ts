@@ -9,7 +9,8 @@ function sanitizeCargaInput (req: Request, res: Response, next: NextFunction): v
   req.body.sanitizedInput = {
     name: req.body.name,
     tara: req.body.tara,
-    idTipoCarga: req.body.idTipoCarga
+    idTipoCarga: req.body.idTipoCarga,
+    estado: req.body.estado
   }
 
   req.body.sanitizedInput = Object.fromEntries(
@@ -38,9 +39,9 @@ async function findAll (req: Request, res: Response): Promise<void> {
     const where = cursor ? { id: { $lt: cursor } } : {}
 
     let cargas = await em.find(Carga, where, {
-      orderBy: { id: 'desc' },       // mismos criterios de orden
-      limit: limit + 1,               // pedimos uno extra
-      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+      orderBy: { id: 'desc' },    
+      limit: limit + 1,               
+      // populate: ['linea'], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
     })
 
     const hasNextPage = cargas.length > limit

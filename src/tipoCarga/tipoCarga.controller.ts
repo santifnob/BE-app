@@ -7,7 +7,8 @@ const em = orm.em
 function sanitizeTipoCargaInput (req: Request, res: Response, next: NextFunction): void {
   req.body.sanitizedInput = {
     name: req.body.name,
-    desc: req.body.desc
+    desc: req.body.desc,
+    estado: req.body.estado
   }
 
   req.body.sanitizedInput = Object.fromEntries(

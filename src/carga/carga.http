@@ -9,7 +9,8 @@ Content-Type: application/json
 {
     "name": "Carbon",
     "tara": 100,
-    "idTipoCarga": 1
+    "idTipoCarga": 1,
+    "estado": "activo"
 
 }
 

@@ -10,7 +10,8 @@ Content-Type: application/json
 
 {
   "name": "Naran",
-  "desc": "Ben "
+  "desc": "Ben ",
+  "estado": "activo"
 }
 
 
