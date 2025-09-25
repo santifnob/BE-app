@@ -9,7 +9,8 @@ Content-Type: application/json
 {
     "ciudadSalida": "Cañada de Gómez",
     "ciudadLlegada": "Cordoba",
-    "totalKm": 200
+    "totalKm": 200,
+    "estado": "idk"
 }
 
 ###ID

@@ -51,6 +51,7 @@ async function findAll (req: Request, res: Response): Promise<void> {
 
 async function findOne (req: Request, res: Response): Promise<void> {
   try {
+    console.log(req.params.id)
     const id = Number.parseInt(req.params.id)
     const tren = await em.findOneOrFail(Tren, id, { populate: ['estadosTren'] })
     res.status(200).json({ message: 'El "Tren" ha sido encontrado: ', data: tren })

@@ -8,7 +8,8 @@ function sanitizeRecorridoInput (req: Request, res: Response, next: NextFunction
   req.body.sanitizedInput = {
     ciudadSalida: req.body.ciudadSalida,
     ciudadLlegada: req.body.ciudadLlegada,
-    totalKm: req.body.totalKm
+    totalKm: req.body.totalKm,
+    estado: req.body.estado
   }
 
   req.body.sanitizedInput = Object.fromEntries(
