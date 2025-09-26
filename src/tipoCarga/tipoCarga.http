@@ -21,7 +21,8 @@ Content-Type: application/json
 
 {
   "name": "Rosa",
-  "desc": "Peppa Pig"
+  "desc": "Peppa Pig",
+  "estado": "activo"
 }
 
 ###
