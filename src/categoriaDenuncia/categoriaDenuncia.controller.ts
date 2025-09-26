@@ -6,8 +6,9 @@ const em = orm.em
 
 function sanitizeRecorridoInput (req: Request, res: Response, next: NextFunction): void {
   req.body.sanitizedInput = {
+    titulo: req.body.titulo,
     descripcion: req.body.descripcion,
-    titulo: req.body.titulo
+    estado: req.body.estado
   }
 
   req.body.sanitizedInput = Object.fromEntries(
@@ -19,10 +20,34 @@ function sanitizeRecorridoInput (req: Request, res: Response, next: NextFunction
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const catsDenuncia = await em.find(CategoriaDenuncia, {}, { populate: ['observaciones'] })
-    res.status(200).json({ message: 'Listado de las categorias de denuncia: ', data: catsDenuncia })
+    const limitParam = Number(req.query.limit)
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+
+    const cursorParam = req.query.cursor
+    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+
+    const where = cursor ? { id: { $lt: cursor } } : {}
+
+    let categoriaDenuncias = await em.find(CategoriaDenuncia, where, {
+      orderBy: { id: 'desc' },       // mismos criterios de orden
+      limit: limit + 1,               // pedimos uno extra
+      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+    })
+
+    const hasNextPage = categoriaDenuncias.length > limit
+    categoriaDenuncias = categoriaDenuncias.slice(0, limit)
+
+    res.status(200).json({
+      message: 'Listado de los categoriaDenuncias',
+      items: categoriaDenuncias,
+      nextCursor: hasNextPage ? categoriaDenuncias.at(-1)!.id : null,
+      hasNextPage,
+    })
   } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener el listado de las categorias de denuncia', error: error.messagee })
+    res.status(500).json({
+      message: 'Error al obtener el listado de los categoriaDenuncias',
+      error: error.message,
+    })
   }
 }
 
