@@ -57,10 +57,10 @@ app.post('/api/auth/login', async (req, res) => {
 
   if (email !== ADMIN_EMAIL) {
     const conductor = await findOneByMail(email) 
-    user = conductor? { id: conductor.id, role: 'conductor', email: conductor.email, password: conductor.password } : undefined 
-  } else { user = { id: 0, role: 'admin', password: ADMIN_PASS, email: ADMIN_EMAIL } }
+    user = conductor? { id: conductor.id, role: 'conductor', email: conductor.email, password: conductor.password, estado: conductor.estado } : undefined 
+  } else { user = { id: 0, role: 'admin', password: ADMIN_PASS, email: ADMIN_EMAIL , estado:'Activo'} }
 
-  if (user && email === user.email && password === user.password) {
+  if (user && email === user.email && password === user.password && user.estado === 'Activo') {
     const token = jwt.sign({ userId: user.id, role: user.role }, secretKey, { expiresIn: '1h' })
 
     res.cookie('token', token, {
@@ -73,7 +73,9 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(200).json({ message: 'Login exitoso', userData: { id: user.id, role: user.role } })
   }
 
-  return res.status(401).json({ message: 'Credenciales invalidas' })
+  if(user?.estado === 'Inactivo') return res.status(401).json({message: 'Falta validar el usuario'})
+
+  return res.status(401).json({ message: 'Los datos ingresados son incorrectos' })
 })
 
 app.post('/api/auth/logout', (req, res) => {
