@@ -10,7 +10,7 @@ function sanitizeCargaInput (req: Request, res: Response, next: NextFunction): v
     name: req.body.name,
     tara: req.body.tara,
     estado: req.body.estado,
-    tipoCarga: req.body.tipoCarga,
+    idTipoCarga: req.body.idTipoCarga,
   }
 
   req.body.sanitizedInput = Object.fromEntries(
