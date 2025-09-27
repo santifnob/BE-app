@@ -5,7 +5,7 @@ import { Conductor } from '../conductor/conductor.entity.js'
 
 const em = orm.em
 
-function sanitizeLicenciaInput (req: Request, res: Response, next: NextFunction): void {
+function sanitizeLicenciaInput(req: Request, res: Response, next: NextFunction): void {
   req.body.sanitizedInput = {
     fechaVencimiento: req.body.fechaVencimiento,
     fechaHecho: req.body.fechaHecho,
@@ -21,16 +21,48 @@ function sanitizeLicenciaInput (req: Request, res: Response, next: NextFunction)
   next()
 }
 
-async function findAll (req: Request, res: Response): Promise<void> {
+async function findAll(req: Request, res: Response): Promise<void> {
   try {
+    const limitParam = Number(req.query.limit)
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+
+    const cursorParam = req.query.cursor
+    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+
+    const where = cursor ? { id: { $lt: cursor } } : {}
+
+    let licencias = await em.find(Licencia, where, {
+      populate: ['conductor'], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
+      orderBy: { id: 'desc' },
+      limit: limit + 1
+    })
+
+    const hasNextPage = licencias.length > limit
+    licencias = licencias.slice(0, limit)
+
+    res.status(200).json({
+      message: 'Listado de las licencias de conductor',
+      items: licencias,
+      nextCursor: hasNextPage ? licencias.at(-1)!.id : null,
+      hasNextPage
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      message: 'Error al obtener el listado de las licencias de conductor',
+      error: error.message
+    })
+  }
+}
+
+/*  try {
     const licencias = await em.find(Licencia, {}, { populate: ['conductor'] })
     res.status(200).json({ message: 'Listado de las licencias de conductor: ', data: licencias })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el listado de las licencias de conductor', error: error.message })
   }
-}
+} */
 
-async function findOne (req: Request, res: Response): Promise<void> {
+async function findOne(req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
     const licencia = await em.findOneOrFail(Licencia, { id }, { populate: ['conductor'] })
@@ -40,8 +72,40 @@ async function findOne (req: Request, res: Response): Promise<void> {
   }
 }
 
-async function add (req: Request, res: Response): Promise<void> {
+async function add(req: Request, res: Response): Promise<void> {
   try {
+    const input = req.body.sanitizedInput
+
+    // Validación de campos obligatorios
+    if (!input?.estado || !input?.fechaHecho || !input?.fechaVencimiento || !input?.idConductor) {
+      res.status(400).json({
+        message: 'Campos requeridos: estado, fechaHecho, fechaVencimiento, idConductor'
+      })
+      return
+    }
+
+    const data: any = {
+      estado: String(input.estado),
+      fechaHecho: new Date(input.fechaHecho),
+      fechaVencimiento: new Date(input.fechaVencimiento)
+    }
+
+    // Si vino idConductor válido, lo seteamos
+    const idConductor = Number(input.idConductor)
+    if (Number.isFinite(idConductor)) {
+      // getReference evita query extra; si querés validar existencia, usa findOneOrFail
+      data.conductor = em.getReference(Conductor, idConductor)
+    }
+
+    const licencia = em.create(Licencia, data)
+    await em.flush()
+
+    res.status(201).json({ message: 'La "Licencia de conductor" ha sido creada con éxito', data: licencia })
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error al agregar la "Licencia de conductor"', error: error.message })
+  }
+}
+/* try {
     const idConductor = Number.parseInt(req.body.sanitizedInput.idConductor)
     const conductor = await em.findOneOrFail(Conductor, { id: idConductor })
     req.body.sanitizedInput.conductor = conductor
@@ -51,9 +115,9 @@ async function add (req: Request, res: Response): Promise<void> {
   } catch (error: any) {
     res.status(500).json({ message: 'Error al agregar la "Licencia de conductor"', error: error.message })
   }
-}
+} */
 
-async function update (req: Request, res: Response): Promise<void> {
+async function update(req: Request, res: Response): Promise<void> {
   try {
     if (req.body.sanitizedInput.idConductor !== undefined) {
       const idConductor = Number.parseInt(req.body.sanitizedInput.idConductor)
@@ -73,7 +137,7 @@ async function update (req: Request, res: Response): Promise<void> {
   }
 }
 
-async function remove (req: Request, res: Response): Promise<void> {
+async function remove(req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id)
     const licencia = await em.findOneOrFail(Licencia, { id })
