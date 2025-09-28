@@ -9,7 +9,8 @@ Content-Type: application/json
 {
     "nombre": "Mantenimiento",
     "fechaVigencia": "2024-10-01",
-    "idTren": 2
+    "estado": "Activo",
+    "idTren": 10
 }
 
 ###ID
