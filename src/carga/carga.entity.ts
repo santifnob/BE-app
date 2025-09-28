@@ -9,7 +9,7 @@ export class Carga extends BaseEntity {
     name!: string
 
   @Property({ nullable: false })
-    tara!: number
+    precio!: number
 
   @ManyToOne(() => TipoCarga, { nullable: true })
     tipoCarga!: Rel<TipoCarga> | null

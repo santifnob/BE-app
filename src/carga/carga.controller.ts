@@ -8,7 +8,7 @@ const em = orm.em
 function sanitizeCargaInput (req: Request, res: Response, next: NextFunction): void {
   req.body.sanitizedInput = {
     name: req.body.name,
-    tara: req.body.tara,
+    precio: req.body.precio,
     estado: req.body.estado,
     idTipoCarga: req.body.idTipoCarga,
   }
@@ -76,14 +76,14 @@ async function add (req: Request, res: Response): Promise<void> {
   try {
     const input = req.body.sanitizedInput;
 
-    if (!input?.name || input.tara === undefined || input.estado === undefined) {
-      res.status(400).json({ message: 'Campos requeridos: name, tara, estado' });
+    if (!input?.name || input.precio === undefined || input.estado === undefined) {
+      res.status(400).json({ message: 'Campos requeridos: name, precio, estado' });
       return;
     }
 
     const data: any = {
       name: String(input.name),
-      tara: Number(input.tara),
+      precio: Number(input.precio),
       estado: String(input.estado),
     };
 
@@ -130,7 +130,7 @@ async function update (req: Request, res: Response): Promise<void> {
       delete input.idTipoCarga;
     }
 
-    em.assign(carga, input); // name, tara, estado, etc.
+    em.assign(carga, input); // name, precio, estado, etc.
     await em.flush();
 
     res.status(200).json({ message: 'La "Carga" ha sido actualizada con éxito', data: carga });

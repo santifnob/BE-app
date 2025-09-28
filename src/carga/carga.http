@@ -8,7 +8,7 @@ Content-Type: application/json
 
 {
     "name": "Este tiene que funcionar",
-    "tara": 100,
+    "precio": 100,
     "estado": "Activo",
     "tipoCarga": 8
 }
