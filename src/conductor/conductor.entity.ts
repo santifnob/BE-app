@@ -6,10 +6,16 @@ import { Viaje } from '../viaje/viaje.entity.js'
 @Entity()
 export class Conductor extends BaseEntity {
   @Property({ nullable: false })
-    name!: string
+    nombre!: string
 
   @Property({ nullable: false })
     apellido!: string
+
+  @Property({ nullable: false, unique: true })
+    email!: string
+
+  @Property({ nullable: false })
+    password!: string
 
   @OneToMany(() => Licencia, (licencia) => licencia.conductor, { cascade: [Cascade.ALL] })
     licencias = new Collection<Licencia>(this)

@@ -9,10 +9,10 @@ export class Carga extends BaseEntity {
     name!: string
 
   @Property({ nullable: false })
-    tara!: number
+    precio!: number
 
-  @ManyToOne(() => TipoCarga, { nullable: false })
-    tipoCarga!: Rel<TipoCarga>
+  @ManyToOne(() => TipoCarga, { nullable: true })
+    tipoCarga!: Rel<TipoCarga> | null
 
   @OneToMany(() => LineaCarga, (lineaCarga) => lineaCarga.carga, { cascade: [Cascade.ALL] })
     lineaCargas = new Collection<LineaCarga>(this)

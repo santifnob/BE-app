@@ -7,8 +7,11 @@ POST http://localhost:3000/api/conductor/
 Content-Type: application/json
 
 {
-    "name": "tomas",
-    "apellido": "castel"
+    "nombre": "tomas",
+    "apellido": "castel",
+    "email": "cond@email.com",
+    "password": "123",
+    "estado": "activo"
 }
 
 ### ID
@@ -22,7 +25,7 @@ PUT http://localhost:3000/api/conductor/{{id}}
 Content-Type: application/json
 
 {
-    "name": "javier",
+    "nombre": "javier",
     "apellido": "sanchez"
 }
 

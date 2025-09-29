@@ -10,7 +10,8 @@ Content-Type: application/json
 
 {
   "name": "Naran",
-  "desc": "Ben "
+  "desc": "Ben ",
+  "estado": "activo"
 }
 
 
@@ -20,7 +21,8 @@ Content-Type: application/json
 
 {
   "name": "Rosa",
-  "desc": "Peppa Pig"
+  "desc": "Peppa Pig",
+  "estado": "activo"
 }
 
 ###
