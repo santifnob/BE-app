@@ -26,7 +26,7 @@ async function findAll (req: Request, res: Response): Promise<void> {
     const where = cursor ? { id: { $lt: cursor } } : {}
 
     let trenes = await em.find(Tren, where, {
-      populate: ['estadosTren'],
+      populate: ['viajes', 'estadosTren'],
       orderBy: { id: 'desc' }, // 'asc' o 'desc' <-  valor por defecto 'desc'
       limit: limit + 1, // pedimos uno más para saber si hay next page
     })
@@ -37,7 +37,7 @@ async function findAll (req: Request, res: Response): Promise<void> {
 
     const trenesConEstado = trenes.map((tren) => {
       const estados = tren.estadosTren || []
-      const lastEstado = estados.toArray().sort((e1, e2) => {
+      const lastEstado = estados.toArray().filter((e) => e.estado === 'Activo').sort((e1, e2) => {
         return e2.fechaVigencia.getTime() - e1.fechaVigencia.getTime()
       })[0]
       return { ...tren, estadoActual: lastEstado}
