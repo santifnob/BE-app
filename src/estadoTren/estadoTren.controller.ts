@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
-import { EstadoTren } from './estadoTren.entity.js'
 import { orm } from '../shared/db/orm.js'
 import { Tren } from '../tren/tren.entity.js'
+import { EstadoTren } from '../estadoTren/estadoTren.entity.js'
 
 const em = orm.em
 
@@ -9,6 +9,7 @@ function sanitizeEstadoInput (req: Request, res: Response, next: NextFunction): 
   req.body.sanitizedInput = {
     fechaVigencia: req.body.fechaVigencia,
     nombre: req.body.nombre,
+    estado: req.body.estado,
     idTren: req.body.idTren
   }
   // more checks here
@@ -21,10 +22,34 @@ function sanitizeEstadoInput (req: Request, res: Response, next: NextFunction): 
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const estados = await em.find(EstadoTren, {}, { populate: ['tren'] })
-    res.status(200).json({ message: 'Listado de los estados de tren: ', data: estados })
+    const limitParam = Number(req.query.limit)
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+
+    const cursorParam = req.query.cursor
+    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+
+    const where = cursor ? { id: { $lt: cursor } } : {}
+
+    let estadoTrenes = await em.find(EstadoTren, where, {
+      orderBy: { id: 'desc' },       // mismos criterios de orden
+      limit: limit + 1,               // pedimos uno extra
+      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+    })
+
+    const hasNextPage = estadoTrenes.length > limit
+    estadoTrenes = estadoTrenes.slice(0, limit)
+
+    res.status(200).json({
+      message: 'Listado de los estadoTrenes',
+      items: estadoTrenes,
+      nextCursor: hasNextPage ? estadoTrenes.at(-1)!.id : null,
+      hasNextPage,
+    })
   } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener el listado de los estados de tren', error: error.message })
+    res.status(500).json({
+      message: 'Error al obtener el listado de los estadoTrenes',
+      error: error.message,
+    })
   }
 }
 

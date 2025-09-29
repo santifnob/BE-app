@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { Tren } from './tren.entity.js'
 import { orm } from '../shared/db/orm.js'
+import { read } from 'fs'
 
 const em = orm.em
 
@@ -18,8 +19,31 @@ function sanitizarTrenInput (req: Request, res: Response, next: NextFunction): v
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const trenes = await em.find(Tren, {}, { populate: ['estadosTren'] })
-    res.status(200).json({ message: 'Listado de los trenes: ', data: trenes })
+    
+    const limit = Number(req.query.limit) || 10
+    const cursor = req.query.cursor ? Number(req.query.cursor) : null
+    // Condición para traer solo registros después del cursor
+    const where = cursor ? { id: { $lt: cursor } } : {}
+
+    let trenes = await em.find(Tren, where, {
+      populate: ['viajes', 'estadosTren'],
+      orderBy: { id: 'desc' }, // 'asc' o 'desc' <-  valor por defecto 'desc'
+      limit: limit + 1, // pedimos uno más para saber si hay next page
+    })
+
+    // Detectamos si hay más páginas
+    const hasNextPage = trenes.length > limit
+    trenes = trenes.slice(0, limit) // en caso de que haya uno más, lo descartamos
+
+    const trenesConEstado = trenes.map((tren) => {
+      const estados = tren.estadosTren || []
+      const lastEstado = estados.toArray().filter((e) => e.estado === 'Activo').sort((e1, e2) => {
+        return e2.fechaVigencia.getTime() - e1.fechaVigencia.getTime()
+      })[0]
+      return { ...tren, estadoActual: lastEstado}
+    })
+
+    res.status(200).json({ message: 'Listado de los trenes: ', items: trenesConEstado, nextCursor: hasNextPage ? trenesConEstado.at(-1)!.id : null, hasNextPage })
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el listado de los trenes', error: error.message })
   }
@@ -27,6 +51,7 @@ async function findAll (req: Request, res: Response): Promise<void> {
 
 async function findOne (req: Request, res: Response): Promise<void> {
   try {
+    console.log(req.params.id)
     const id = Number.parseInt(req.params.id)
     const tren = await em.findOneOrFail(Tren, id, { populate: ['estadosTren'] })
     res.status(200).json({ message: 'El "Tren" ha sido encontrado: ', data: tren })

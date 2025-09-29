@@ -27,8 +27,27 @@ function sanitizeViajeInput (req: Request, res: Response, next: NextFunction): v
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const viajes = await em.find(Viaje, {}, { populate: ['tren', 'recorrido', 'conductor', 'lineasCarga', 'observaciones'] })
-    res.status(200).json({ message: 'Listado de los Viajes: ', data: viajes })
+    const limitParam = Number(req.query.limit)
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+
+    const cursorParam = req.query.cursor
+    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+
+    const where = cursor ? { id: { $lt: cursor } } : {}
+
+    let viajes = await em.find(Viaje, where, {
+          populate: ['tren', 'recorrido', 'conductor', 'lineasCarga', 'observaciones'], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos      
+          orderBy: { id: 'desc' },    
+          limit: limit + 1,               
+        })
+    const hasNextPage = viajes.length > limit
+    viajes = viajes.slice(0, limit)
+
+    res.status(200).json({ 
+      message: 'Listado de los Viajes: ', 
+      items: viajes, 
+      nextCursor: hasNextPage ? viajes.at(-1)!.id : null,
+      hasNextPage,})
   } catch (error: any) {
     res.status(500).json({ message: 'Error al obtener el listado de los Viajes', error: error.message })
   }

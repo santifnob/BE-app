@@ -7,7 +7,8 @@ const em = orm.em
 function sanitizeTipoCargaInput (req: Request, res: Response, next: NextFunction): void {
   req.body.sanitizedInput = {
     name: req.body.name,
-    desc: req.body.desc
+    desc: req.body.desc,
+    estado: req.body.estado
   }
 
   req.body.sanitizedInput = Object.fromEntries(
@@ -19,10 +20,34 @@ function sanitizeTipoCargaInput (req: Request, res: Response, next: NextFunction
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const tipoCargas = await em.find(TipoCarga, {})
-    res.status(200).json({ message: 'Listado de los tipos de carga: ', data: tipoCargas })
+    const limitParam = Number(req.query.limit)
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+
+    const cursorParam = req.query.cursor
+    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+
+    const where = cursor ? { id: { $lt: cursor } } : {}
+
+    let tipoCargas = await em.find(TipoCarga, where, {
+      orderBy: { id: 'desc' },       // mismos criterios de orden
+      limit: limit + 1,               // pedimos uno extra
+      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+    })
+
+    const hasNextPage = tipoCargas.length > limit
+    tipoCargas = tipoCargas.slice(0, limit)
+
+    res.status(200).json({
+      message: 'Listado de los tipoCargas',
+      items: tipoCargas,
+      nextCursor: hasNextPage ? tipoCargas.at(-1)!.id : null,
+      hasNextPage,
+    })
   } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener el listado de los tipos de carga', error: error.messag })
+    res.status(500).json({
+      message: 'Error al obtener el listado de los tipoCargas',
+      error: error.message,
+    })
   }
 }
 

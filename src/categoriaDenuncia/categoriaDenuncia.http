@@ -7,8 +7,9 @@ POST http://localhost:3000/api/categoriaDenuncia/
 Content-Type: application/json
 
 {
+    "titulo": "Titulo 1",
     "descripcion": "Denuncia 1",
-    "titulo": "Titulo 1"
+    "estado": "Activo"
 }
 
 ###ID
@@ -22,9 +23,11 @@ PUT http://localhost:3000/api/categoriaDenuncia/{{id}}
 Content-Type: application/json
 
 {
-    "descripcion":"Denuncia Actualizada",
-    "titulo":"Titulo Actualizado"
+    "titulo": "Titulo 1",
+    "descripcion": "Denuncia 1",
+    "estado": "Activo"
 }
+
 
 ### delete
 DELETE http://localhost:3000/api/categoriaDenuncia/{{id}}

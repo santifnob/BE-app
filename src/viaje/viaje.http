@@ -18,9 +18,9 @@ Content-Type: application/json
   "fechaIni": "2025-08-03T10:00:00.000Z",
   "fechaFin": "2025-09-03T10:00:00.000Z",
   "estado": "vigente",
-  "idTren": 2,
-  "idRecorrido": 3,
-  "idConductor": 2
+  "idTren": 10,
+  "idRecorrido": 4,
+  "idConductor": 24
 }
 
 ###ID
