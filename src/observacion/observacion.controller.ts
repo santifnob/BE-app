@@ -9,9 +9,9 @@ const em = orm.em
 function sanitizeObservacionInput (req: Request, res: Response, next: NextFunction): void {
   req.body.sanitizedInput = {
     observaciones: req.body.observaciones,
-    fecha: req.body.fecha,
     idCategoria: req.body.idCategoria,
-    idViaje: req.body.idViaje
+    idViaje: req.body.idViaje,
+    estado: req.body.estado,
   }
 
   req.body.sanitizedInput = Object.fromEntries(
@@ -20,12 +20,34 @@ function sanitizeObservacionInput (req: Request, res: Response, next: NextFuncti
   next()
 }
 
-async function findAll (req: Request, res: Response): Promise<void> {
+
+async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const observaciones = await em.find(Observacion, {}, { populate: ['categoriaDenuncia', 'viaje'] })
-    res.status(200).json({ message: 'Listado de las observaciones: ', data: observaciones })
+    const limit = Number(req.query.limit) || 10;
+    const cursor = req.query.cursor ? Number(req.query.cursor) : null;
+
+    const where = cursor ? { id: { $lt: cursor } } : {};
+
+    let observaciones = await em.find(Observacion, where, {
+      populate: ['viaje', 'categoriaDenuncia', 'viaje.recorrido'],
+      orderBy: { id: 'desc' },
+      limit: limit + 1,
+    });
+
+    const hasNextPage = observaciones.length > limit;
+    observaciones = observaciones.slice(0, limit);
+
+    res.status(200).json({
+      message: 'Listado de observaciones',
+      items: observaciones,
+      nextCursor: hasNextPage ? observaciones.at(-1)!.id : null,
+      hasNextPage,
+    });
   } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener el listado de las observaciones', error: error.message })
+    res.status(500).json({
+      message: 'Error al obtener el listado de observaciones',
+      error: error.message,
+    });
   }
 }
 
@@ -66,7 +88,7 @@ async function update (req: Request, res: Response): Promise<void> {
     if (req.body.sanitizedInput.idCategoria !== undefined) {
       const idCategoria = Number.parseInt(req.body.sanitizedInput.idCategoria)
       const categoria = await em.findOneOrFail(CategoriaDenuncia, { id: idCategoria })
-      req.body.sanitizedInput.categoria = categoria
+      req.body.sanitizedInput.categoriaDenuncia = categoria
       req.body.sanitizedInput.idCategoria = undefined
     }
 

@@ -9,7 +9,7 @@ export class Observacion extends BaseEntity {
     observaciones!: string
 
   @Property({ nullable: false })
-    fecha!: Date
+    estado!: string
 
   @ManyToOne(() => CategoriaDenuncia, { nullable: false })
     categoriaDenuncia!: Rel<CategoriaDenuncia>

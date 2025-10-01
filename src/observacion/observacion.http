@@ -14,7 +14,6 @@ Content-Type: application/json
 
 {
   "observaciones": "Demora en el tren",
-  "fecha": "2025-08-03T10:00:00.000Z",
   "idCategoria": 1,
   "idViaje": 8
 }
@@ -26,7 +25,6 @@ Content-Type: application/json
 
 {
   "observaciones": "Tren cancelado sin aviso",
-  "fecha": "2025-08-03T14:30:00.000Z",
   "idCategoria": 1,
   "idViaje": 5
 }
