@@ -1,25 +1,32 @@
-### POST
+### find all
+GET http://localhost:3000/api/lineaCarga/
+
+### add 
 # @name lineaCargaCreated
 POST http://localhost:3000/api/lineaCarga/
 Content-Type: application/json
 
 {
     "cantidadVagon": 10,
-    "idCarga": 2,
-    "idViaje": 4
+    "idCarga": 1,
+    "idViaje": 2
 }
 
-### ID
-@id = {{lineaCargaCreated.response.body.data.id}} 
+###ID
+@id = {{lineaCargaCreated.response.body.data.id}}
 
-### PUT
+### find one
+GET http://localhost:3000/api/lineaCarga/{{id}}
+
+### update 
 PUT http://localhost:3000/api/lineaCarga/{{id}}
 Content-Type: application/json
 
 {
-    "cantidadVagon": 15
+    "cantidadVagon": 10,
+    "idCarga": 1,
+    "idViaje": 2
 }
 
-### DELETE
-@idToDelete = {{lineaCargaCreated.response.body.data.id}} 
+### delete
 DELETE http://localhost:3000/api/lineaCarga/{{id}}

@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { add, remove, update, sanitizeLineaCargaInput } from './lineaCarga.controller.js'
+import { add, remove, update, sanitizeLineaCargaInput, findAll, findOne } from './lineaCarga.controller.js'
 
 export const lineaCargaRouter = Router()
 
@@ -9,6 +9,8 @@ function asyncHandler (f: Function) {
   }
 }
 
+lineaCargaRouter.get('/', sanitizeLineaCargaInput, asyncHandler(findAll))
+lineaCargaRouter.get('/:id', sanitizeLineaCargaInput, asyncHandler(findOne)) 
 lineaCargaRouter.post('/', sanitizeLineaCargaInput, asyncHandler(add))
 lineaCargaRouter.delete('/:id', sanitizeLineaCargaInput, asyncHandler(remove))
 lineaCargaRouter.put('/:id', sanitizeLineaCargaInput, asyncHandler(update))

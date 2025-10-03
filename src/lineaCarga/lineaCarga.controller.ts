@@ -22,16 +22,17 @@ function sanitizeLineaCargaInput (req: Request, res: Response, next: NextFunctio
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit)
-    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
-    const cursorParam = req.query.cursor
-    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+
+    const limit = Number(req.query.limit) || 10
+    const cursor = req.query.cursor ? Number(req.query.cursor) : null;    
     const where = cursor ? { id: { $lt: cursor } } : {} 
+
     let lineaCargas = await em.find(LineaCarga, where, {
-      populate: ['carga', 'viaje', 'viaje.recorrido'], // posiblemente necesitemos 'carga.precio'
+      populate: ['carga', 'viaje', 'viaje.recorrido',  'carga.precio'], // posiblemente necesitemos 'carga.precio'
       orderBy: { id: 'desc' },       // mismos criterios de orden
       limit: limit + 1,               // pedimos uno extra
     })
+    
     const hasNextPage = lineaCargas.length > limit
     lineaCargas = lineaCargas.slice(0, limit)
     res.status(200).json({
