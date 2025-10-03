@@ -7,9 +7,9 @@ POST http://localhost:3000/api/lineaCarga/
 Content-Type: application/json
 
 {
-    "cantidadVagon": 10,
+    "cantidadVagon": 20,
     "idCarga": 1,
-    "idViaje": 2
+    "idViaje": 1
 }
 
 ###ID

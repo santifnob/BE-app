@@ -10,7 +10,8 @@ function sanitizeLineaCargaInput (req: Request, res: Response, next: NextFunctio
   req.body.sanitizedInput = {
     cantidadVagon: req.body.cantidadVagon,
     idCarga: req.body.idCarga,
-    idViaje: req.body.idViaje
+    idViaje: req.body.idViaje,
+    estado: req.body.estado
   }
   // more checks here
 
@@ -22,10 +23,12 @@ function sanitizeLineaCargaInput (req: Request, res: Response, next: NextFunctio
 
 async function findAll (req: Request, res: Response): Promise<void> {
   try {
+    const limitParam = Number(req.query.limit)
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+    const cursorParam = req.query.cursor
+    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
 
-    const limit = Number(req.query.limit) || 10
-    const cursor = req.query.cursor ? Number(req.query.cursor) : null;    
-    const where = cursor ? { id: { $lt: cursor } } : {} 
+    const where = cursor ? { id: { $lt: cursor } } : {}
 
     let lineaCargas = await em.find(LineaCarga, where, {
       populate: ['carga', 'viaje', 'viaje.recorrido',  'carga.precio'], // posiblemente necesitemos 'carga.precio'

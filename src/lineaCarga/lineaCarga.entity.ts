@@ -8,6 +8,9 @@ export class LineaCarga extends BaseEntity {
   @Property({ nullable: false })
     cantidadVagon!: number
 
+  @Property({ nullable: false })
+    estado!: string 
+
   @ManyToOne(() => Carga, { nullable: false })
     carga!: Rel<Carga>
 
