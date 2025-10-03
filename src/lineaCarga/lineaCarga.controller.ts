@@ -20,6 +20,45 @@ function sanitizeLineaCargaInput (req: Request, res: Response, next: NextFunctio
   next()
 }
 
+async function findAll (req: Request, res: Response): Promise<void> {
+  try {
+    const limitParam = Number(req.query.limit)
+    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+    const cursorParam = req.query.cursor
+    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+    const where = cursor ? { id: { $lt: cursor } } : {} 
+    let lineaCargas = await em.find(LineaCarga, where, {
+      populate: ['carga', 'viaje', 'viaje.recorrido'], // posiblemente necesitemos 'carga.precio'
+      orderBy: { id: 'desc' },       // mismos criterios de orden
+      limit: limit + 1,               // pedimos uno extra
+    })
+    const hasNextPage = lineaCargas.length > limit
+    lineaCargas = lineaCargas.slice(0, limit)
+    res.status(200).json({
+      message: 'Listado de las lineas de carga',
+      items: lineaCargas,
+      nextCursor: hasNextPage ? lineaCargas.at(-1)!.id : null,
+      hasNextPage,
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      message: 'Error al obtener el listado de las lineas de carga',
+      error: error.message,
+    })
+  }
+}
+
+async function findOne (req: Request, res: Response): Promise<void> {
+  try {
+    const id = Number.parseInt(req.params.id) 
+    const lineaCarga = await em.findOneOrFail(LineaCarga, { id }, { populate: ['carga', 'viaje', 'viaje.recorrido'] }
+    )
+    res.status(200).json({ message: 'La "Linea de carga" ha sido encontrada: ', data: lineaCarga })
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error al obtener la "Linea de carga"', error: error.message })
+  } 
+}
+
 async function add (req: Request, res: Response): Promise<void> {
   try {
     const idCarga = Number.parseInt(req.body.sanitizedInput.idCarga)
@@ -76,4 +115,4 @@ async function remove (req: Request, res: Response): Promise<void> {
   }
 }
 
-export { sanitizeLineaCargaInput, add, update, remove }
+export { sanitizeLineaCargaInput, add, update, remove, findAll, findOne }
