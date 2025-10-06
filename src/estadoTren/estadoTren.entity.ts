@@ -1,19 +1,27 @@
-import { BaseEntity } from '../shared/db/baseEntity.entity.js'
-import { Property, ManyToOne, Entity, Rel, OneToMany, Collection, Cascade } from '@mikro-orm/core'
-import { Tren } from '../tren/tren.entity.js'
-import { Observacion } from '../observacion/observacion.entity.js'
+import { BaseEntity } from "../shared/db/baseEntity.entity.js";
+import {
+  Property,
+  ManyToOne,
+  Entity,
+  Rel,
+  OneToMany,
+  Collection,
+  Cascade,
+} from "@mikro-orm/core";
+import { Tren } from "../tren/tren.entity.js";
+import { Observacion } from "../observacion/observacion.entity.js";
 
 @Entity()
 export class EstadoTren extends BaseEntity {
   @Property({ nullable: false })
-    nombre!: string
+  nombre!: string;
 
   @Property({ nullable: false })
-    fechaVigencia!: Date
+  fechaVigencia!: Date;
 
   @Property({ nullable: false })
-    estado!: string
+  estado!: string;
 
   @ManyToOne(() => Tren, { nullable: false })
-    tren!: Rel<Tren>
+  tren!: Rel<Tren>;
 }

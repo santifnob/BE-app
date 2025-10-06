@@ -1,22 +1,28 @@
-import { NextFunction, Request, Response } from 'express'
-import { orm } from '../shared/db/orm.js'
-import { Carga } from './carga.entity.js'
-import { TipoCarga } from '../tipoCarga/tipoCarga.entity.js'
+import { NextFunction, Request, Response } from "express";
+import { orm } from "../shared/db/orm.js";
+import { Carga } from "./carga.entity.js";
+import { TipoCarga } from "../tipoCarga/tipoCarga.entity.js";
 
-const em = orm.em
+const em = orm.em;
 
-function sanitizeCargaInput (req: Request, res: Response, next: NextFunction): void {
+function sanitizeCargaInput(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   req.body.sanitizedInput = {
     name: req.body.name,
     precio: req.body.precio,
     estado: req.body.estado,
     idTipoCarga: req.body.idTipoCarga,
-  }
+  };
 
   req.body.sanitizedInput = Object.fromEntries(
-    Object.entries(req.body.sanitizedInput).filter(([_, value]) => value !== undefined)
-  )
-  next()
+    Object.entries(req.body.sanitizedInput).filter(
+      ([_, value]) => value !== undefined
+    )
+  );
+  next();
 }
 
 /*async function findAll (req: Request, res: Response): Promise<void> {
@@ -28,56 +34,75 @@ function sanitizeCargaInput (req: Request, res: Response, next: NextFunction): v
   }
 }*/
 
-async function findAll (req: Request, res: Response): Promise<void> {
+async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit)
-    const limit = Number.isFinite(limitParam) && limitParam > 0 ? Math.min(limitParam, 100) : 10
+    const limitParam = Number(req.query.limit);
+    const limit =
+      Number.isFinite(limitParam) && limitParam > 0
+        ? Math.min(limitParam, 100)
+        : 10;
 
-    const cursorParam = req.query.cursor
-    const cursor = cursorParam !== undefined && cursorParam !== null ? Number(cursorParam) : null
+    const cursorParam = req.query.cursor;
+    const cursor =
+      cursorParam !== undefined && cursorParam !== null
+        ? Number(cursorParam)
+        : null;
 
-    const where = cursor ? { id: { $lt: cursor } } : {}
+    const where = cursor ? { id: { $lt: cursor } } : {};
 
     let cargas = await em.find(Carga, where, {
-      populate: ['tipoCarga'], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos      
-      orderBy: { id: 'desc' },    
-      limit: limit + 1,               
-    })
+      populate: ["tipoCarga"], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
+      orderBy: { id: "desc" },
+      limit: limit + 1,
+    });
 
-    const hasNextPage = cargas.length > limit
-    cargas = cargas.slice(0, limit)
+    const hasNextPage = cargas.length > limit;
+    cargas = cargas.slice(0, limit);
 
     res.status(200).json({
-      message: 'Listado de las cargas',
+      message: "Listado de las cargas",
       items: cargas,
       nextCursor: hasNextPage ? cargas.at(-1)!.id : null,
       hasNextPage,
-    })
+    });
   } catch (error: any) {
     res.status(500).json({
-      message: 'Error al obtener el listado de las cargas',
+      message: "Error al obtener el listado de las cargas",
       error: error.message,
-    })
+    });
   }
 }
 
-async function findOne (req: Request, res: Response): Promise<void> {
+async function findOne(req: Request, res: Response): Promise<void> {
   try {
-    const id = Number.parseInt(req.params.id)
-    const carga = await em.findOneOrFail(Carga, { id }, { populate: ['lineaCargas', 'tipoCarga'] }) // sacar despues lineasCargas
-    res.status(200).json({ message: 'La "Carga" ha sido encontrada: ', data: carga })
+    const id = Number.parseInt(req.params.id);
+    const carga = await em.findOneOrFail(
+      Carga,
+      { id },
+      { populate: ["lineaCargas", "tipoCarga"] }
+    ); // sacar despues lineasCargas
+    res
+      .status(200)
+      .json({ message: 'La "Carga" ha sido encontrada: ', data: carga });
   } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener la "Carga"', error: error.message })
+    res
+      .status(500)
+      .json({ message: 'Error al obtener la "Carga"', error: error.message });
   }
 }
 
-
-async function add (req: Request, res: Response): Promise<void> {
+async function add(req: Request, res: Response): Promise<void> {
   try {
     const input = req.body.sanitizedInput;
 
-    if (!input?.name || input.precio === undefined || input.estado === undefined) {
-      res.status(400).json({ message: 'Campos requeridos: name, precio, estado' });
+    if (
+      !input?.name ||
+      input.precio === undefined ||
+      input.estado === undefined
+    ) {
+      res
+        .status(400)
+        .json({ message: "Campos requeridos: name, precio, estado" });
       return;
     }
 
@@ -99,15 +124,17 @@ async function add (req: Request, res: Response): Promise<void> {
     const carga = em.create(Carga, data);
     await em.flush();
 
-    res.status(201).json({ message: 'La "Carga" ha sido creada con éxito', data: carga });
+    res
+      .status(201)
+      .json({ message: 'La "Carga" ha sido creada con éxito', data: carga });
   } catch (error: any) {
-    res.status(500).json({ message: 'Error al agregar la "Carga"', error: error.message });
+    res
+      .status(500)
+      .json({ message: 'Error al agregar la "Carga"', error: error.message });
   }
 }
 
-
-
-async function update (req: Request, res: Response): Promise<void> {
+async function update(req: Request, res: Response): Promise<void> {
   try {
     const input = req.body.sanitizedInput;
 
@@ -115,9 +142,9 @@ async function update (req: Request, res: Response): Promise<void> {
     const carga = await em.findOneOrFail(Carga, { id });
 
     // Manejo flexible de idTipoCarga
-    if ('idTipoCarga' in input) {
+    if ("idTipoCarga" in input) {
       if (input.idTipoCarga === null) {
-        carga.tipoCarga = null;  
+        carga.tipoCarga = null;
       } else {
         const idTc = Number(input.idTipoCarga);
         if (Number.isFinite(idTc)) {
@@ -133,12 +160,21 @@ async function update (req: Request, res: Response): Promise<void> {
     em.assign(carga, input); // name, precio, estado, etc.
     await em.flush();
 
-    res.status(200).json({ message: 'La "Carga" ha sido actualizada con éxito', data: carga });
+    res
+      .status(200)
+      .json({
+        message: 'La "Carga" ha sido actualizada con éxito',
+        data: carga,
+      });
   } catch (error: any) {
-    res.status(500).json({ message: 'Error al actualizar la "Carga"', error: error.message });
+    res
+      .status(500)
+      .json({
+        message: 'Error al actualizar la "Carga"',
+        error: error.message,
+      });
   }
 }
-
 
 /* DIFERENCIA
 async function update (req: Request, res: Response) {
@@ -154,15 +190,22 @@ async function update (req: Request, res: Response) {
 }
 */
 
-async function remove (req: Request, res: Response): Promise<void> {
+async function remove(req: Request, res: Response): Promise<void> {
   try {
-    const id = Number.parseInt(req.params.id)
-    const carga = await em.findOneOrFail(Carga, { id })
-    await em.removeAndFlush(carga)
-    res.status(200).json({ message: 'La "Carga" ha sido eliminada con exito: ', data: carga })
+    const id = Number.parseInt(req.params.id);
+    const carga = await em.findOneOrFail(Carga, { id });
+    await em.removeAndFlush(carga);
+    res
+      .status(200)
+      .json({
+        message: 'La "Carga" ha sido eliminada con exito: ',
+        data: carga,
+      });
   } catch (error: any) {
-    res.status(500).json({ message: 'Error al eliminar la "Carga"', error: error.message })
+    res
+      .status(500)
+      .json({ message: 'Error al eliminar la "Carga"', error: error.message });
   }
 }
 
-export { findAll, findOne, add, update, remove, sanitizeCargaInput }
+export { findAll, findOne, add, update, remove, sanitizeCargaInput };
