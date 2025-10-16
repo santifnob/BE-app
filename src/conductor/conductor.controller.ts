@@ -4,6 +4,14 @@ import { Conductor } from "./conductor.entity.js";
 
 const em = orm.em;
 
+type WhereType = {
+  id?: { $lt: number };
+  nombre?: string;
+  apellido?: string;
+  email?: string; 
+  estado?: string;
+} // Tipo para manejar los filtros que llegan desde el back (sino no dejaba crearlos dinamicamente en el obj)
+
 function sanitizeConductorInput(
   req: Request,
   res: Response,
@@ -39,10 +47,22 @@ async function findAll(req: Request, res: Response): Promise<void> {
         ? Number(cursorParam)
         : null;
 
-    const where = cursor ? { id: { $lt: cursor } } : {};
+    const where: WhereType = cursor ? { id: { $lt: cursor }} : {};
+    const filterColumn = req.query.filterColumn || undefined
+    const filterValue = req.query.filterValue || undefined
 
+    if (filterColumn && filterValue && where) {
+      switch (filterColumn) {
+        case "nombre": where.nombre = filterValue.toString(); break;
+        case "apellido": where.apellido = filterValue.toString(); break; 
+        case "email": where.email = filterValue.toString(); break;
+        case "estado": where.estado = filterValue.toString(); break;
+        default: break; 
+      }
+    }
+  
     let conductores = await em.find(Conductor, where, {
-      populate: ["licencias", "viajes"], // <-- SOLO si necesitás relaciones
+      populate: ["licencias", "viajes"],
       orderBy: { id: "desc" }, // mismos criterios de orden
       limit: limit + 1, // pedimos uno extra
     });
