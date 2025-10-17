@@ -26,6 +26,15 @@ function sanitizeRecorridoInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
+    const recorridos = await em.find(Recorrido, {})
+    res.status(200).json({ message: 'Listado de los recorridos: ', data: recorridos.filter(r => r.estado === 'Activo') })
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error al obtener el listado de los recorridos', error: error.message })
+  }
+}
+
+async function findAllInfinite(req: Request, res: Response): Promise<void> {
+  try {
     const limitParam = Number(req.query.limit);
     const limit =
       Number.isFinite(limitParam) && limitParam > 0
@@ -138,4 +147,4 @@ async function remove(req: Request, res: Response): Promise<void> {
   }
 }
 
-export { sanitizeRecorridoInput, findAll, findOne, add, update, remove };
+export { sanitizeRecorridoInput, findAll, findAllInfinite, findOne, add, update, remove };

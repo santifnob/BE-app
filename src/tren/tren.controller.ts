@@ -25,6 +25,15 @@ function sanitizarTrenInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
+    const trenes = await em.find(Tren, {})
+    res.status(200).json({ message: 'Listado de los recorridos: ', data: trenes })
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error al obtener el listado de los recorridos', error: error.message })
+  }
+}
+
+async function findAllInfinite(req: Request, res: Response): Promise<void> {
+  try {
     const limit = Number(req.query.limit) || 10;
     const cursor = req.query.cursor ? Number(req.query.cursor) : null;
     // Condición para traer solo registros después del cursor
@@ -135,4 +144,4 @@ async function remove(req: Request, res: Response): Promise<void> {
   }
 }
 
-export { sanitizarTrenInput, findAll, findOne, add, update, remove };
+export { sanitizarTrenInput, findAll, findAllInfinite, findOne, add, update, remove };

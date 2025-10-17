@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   findAll,
+  findAllInfinite,
   findOne,
   add,
   update,
@@ -20,6 +21,7 @@ function asyncHandler(fn: Function) {
 }
 
 recorridoRouter.get("/", asyncHandler(findAll));
+recorridoRouter.get("/", asyncHandler(findAllInfinite));
 recorridoRouter.get("/:id", asyncHandler(findOne));
 recorridoRouter.post("/", sanitizeRecorridoInput, asyncHandler(add));
 recorridoRouter.put("/:id", sanitizeRecorridoInput, asyncHandler(update));

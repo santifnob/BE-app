@@ -8,7 +8,7 @@ type WhereType = {
   id?: { $lt: number };
   nombre?: string;
   apellido?: string;
-  email?: string; 
+  email?: string;
   estado?: string;
 } // Tipo para manejar los filtros que llegan desde el back (sino no dejaba crearlos dinamicamente en el obj)
 
@@ -32,8 +32,16 @@ function sanitizeConductorInput(
   );
   next();
 }
-
 async function findAll(req: Request, res: Response): Promise<void> {
+  try {
+    const conductores = await em.find(Conductor, {}, { populate: ['licencias', 'viajes'] })
+    res.status(200).json({ message: 'Listado de los conductores:', data: conductores.filter(c => c.estado === 'Activo') })
+  } catch (error: any) {
+    res.status(500).json({ message: 'Error al obtener el listado de los conductores', error: error.message })
+  }
+}
+
+async function findAllInfinite(req: Request, res: Response): Promise<void> {
   try {
     const limitParam = Number(req.query.limit);
     const limit =
@@ -47,20 +55,20 @@ async function findAll(req: Request, res: Response): Promise<void> {
         ? Number(cursorParam)
         : null;
 
-    const where: WhereType = cursor ? { id: { $lt: cursor }} : {};
+    const where: WhereType = cursor ? { id: { $lt: cursor } } : {};
     const filterColumn = req.query.filterColumn || undefined
     const filterValue = req.query.filterValue || undefined
 
     if (filterColumn && filterValue && where) {
       switch (filterColumn) {
         case "nombre": where.nombre = filterValue.toString(); break;
-        case "apellido": where.apellido = filterValue.toString(); break; 
+        case "apellido": where.apellido = filterValue.toString(); break;
         case "email": where.email = filterValue.toString(); break;
         case "estado": where.estado = filterValue.toString(); break;
-        default: break; 
+        default: break;
       }
     }
-  
+
     let conductores = await em.find(Conductor, where, {
       populate: ["licencias", "viajes"],
       orderBy: { id: "desc" }, // mismos criterios de orden
@@ -210,4 +218,4 @@ export async function findOneByMail(
   }
 }
 
-export { sanitizeConductorInput, findAll, findOne, add, update, remove };
+export { sanitizeConductorInput, findAllInfinite, findAll, findOne, add, update, remove };

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   findAll,
+  findAllInfinite,
   findOne,
   add,
   update,
@@ -17,6 +18,7 @@ function asyncHandler(fn: Function) {
 }
 
 trenRouter.get("/", asyncHandler(findAll));
+trenRouter.get("/", asyncHandler(findAllInfinite));
 trenRouter.get("/:id", asyncHandler(findOne));
 trenRouter.post("/", sanitizarTrenInput, asyncHandler(add));
 trenRouter.put("/:id", sanitizarTrenInput, asyncHandler(update));
