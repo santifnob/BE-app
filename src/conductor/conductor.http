@@ -9,9 +9,9 @@ Content-Type: application/json
 {
     "nombre": "tomas",
     "apellido": "castel",
-    "email": "cond@email.com",
+    "email": "cosssssssssssnd@email.com",
     "password": "123",
-    "estado": "activo"
+    "estado": "Pendiente"
 }
 
 ### ID

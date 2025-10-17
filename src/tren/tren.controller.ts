@@ -1,9 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { Tren } from "./tren.entity.js";
 import { orm } from "../shared/db/orm.js";
-import { read } from "fs";
 
 const em = orm.em;
+
+type WhereType = {
+  id?: { $lt: number };
+  color?: string;
+  modelo?: string;
+  estadosTren?: { nombre?: string}
+}
 
 function sanitizarTrenInput(
   req: Request,
@@ -12,7 +18,7 @@ function sanitizarTrenInput(
 ): void {
   req.body.sanitizarInput = {
     color: req.body.color,
-    modelo: req.body.modelo,
+    modelo: req.body.modelo
   };
 
   req.body.sanitizarInput = Object.fromEntries(
@@ -28,7 +34,19 @@ async function findAll(req: Request, res: Response): Promise<void> {
     const limit = Number(req.query.limit) || 10;
     const cursor = req.query.cursor ? Number(req.query.cursor) : null;
     // Condición para traer solo registros después del cursor
-    const where = cursor ? { id: { $lt: cursor } } : {};
+    
+    const where: WhereType = cursor ? { id: { $lt: cursor }} : {};
+    const filterColumn = req.query.filterColumn || undefined
+    const filterValue = req.query.filterValue || undefined
+
+    if (filterColumn && filterValue && where) {
+      switch (filterColumn) {
+        case "color": where.color = filterValue.toString(); break;
+        case "modelo": where.modelo = filterValue.toString(); break; 
+        case "estado": where.estadosTren = {nombre: filterValue.toString()} ; break;
+        default: break; 
+      }
+    }
 
     let trenes = await em.find(Tren, where, {
       populate: ["viajes", "estadosTren"],
@@ -48,6 +66,10 @@ async function findAll(req: Request, res: Response): Promise<void> {
         .sort((e1, e2) => {
           return e2.fechaVigencia.getTime() - e1.fechaVigencia.getTime();
         })[0];
+      
+console.log('filterColumn', filterColumn)
+    console.log('filterValue', filterValue)
+
       return { ...tren, estadoActual: lastEstado };
     });
 
