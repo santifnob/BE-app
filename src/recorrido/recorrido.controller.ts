@@ -4,6 +4,14 @@ import { orm } from "../shared/db/orm.js";
 
 const em = orm.em;
 
+type WhereType = {
+  id?: { $lt: number };
+  ciudadSalida?: string;
+  ciudadLlegada?: string;
+  estado?: string;
+  totalKm?: number;
+}
+
 function sanitizeRecorridoInput(
   req: Request,
   res: Response,
@@ -38,7 +46,19 @@ async function findAll(req: Request, res: Response): Promise<void> {
         ? Number(cursorParam)
         : null;
 
-    const where = cursor ? { id: { $lt: cursor } } : {};
+    const where: WhereType = cursor ? { id: { $lt: cursor }} : {};
+    const filterColumn = req.query.filterColumn || undefined
+    const filterValue = req.query.filterValue || undefined
+
+    if (filterColumn && filterValue && where) {
+      switch (filterColumn) {
+        case "ciudadLlegada": where.ciudadLlegada = filterValue.toString(); break;
+        case "ciudadSalida": where.ciudadSalida = filterValue.toString(); break; 
+        case "estado": where.estado = filterValue.toString(); break;
+        case "totalKm": where.totalKm = parseInt(filterValue.toString()); break;
+        default: break; 
+      }
+    }
 
     let recorridos = await em.find(Recorrido, where, {
       orderBy: { id: "desc" }, // mismos criterios de orden
