@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { orm } from "../shared/db/orm.js";
 import { TipoCarga } from "./tipoCarga.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
 
 const em = orm.em;
 
@@ -26,38 +27,17 @@ function sanitizeTipoCargaInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
-
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let tipoCargas = await em.find(TipoCarga, where, {
-      orderBy: { id: "desc" }, // mismos criterios de orden
-      limit: limit + 1, // pedimos uno extra
-      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+    const result = await getInfiniteScroll<TipoCarga>({
+      req,
+      em,
+      entity: TipoCarga,
+      message: "Listado de tipos de carga:",
     });
 
-    const hasNextPage = tipoCargas.length > limit;
-    tipoCargas = tipoCargas.slice(0, limit);
-
-    res.status(200).json({
-      message: "Listado de los tipoCargas",
-      items: tipoCargas,
-      nextCursor: hasNextPage ? tipoCargas.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
-      message: "Error al obtener el listado de los tipoCargas",
+      message: "Error al obtener el listado de tipos de carga",
       error: error.message,
     });
   }

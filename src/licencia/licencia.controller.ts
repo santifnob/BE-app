@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { Licencia } from "./licencia.entity.js";
 import { orm } from "../shared/db/orm.js";
 import { Conductor } from "../conductor/conductor.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
 
 const em = orm.em;
 
@@ -29,50 +30,22 @@ function sanitizeLicenciaInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
-
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let licencias = await em.find(Licencia, where, {
-      populate: ["conductor"], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
-      orderBy: { id: "desc" },
-      limit: limit + 1,
+    const result = await getInfiniteScroll<Licencia>({
+      req,
+      em,
+      entity: Licencia,
+      message: "Listado de licencias:",
+      populate: ["conductor"],
     });
 
-    const hasNextPage = licencias.length > limit;
-    licencias = licencias.slice(0, limit);
-
-    res.status(200).json({
-      message: "Listado de las licencias de conductor",
-      items: licencias,
-      nextCursor: hasNextPage ? licencias.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
-      message: "Error al obtener el listado de las licencias de conductor",
+      message: "Error al obtener el listado de licencias",
       error: error.message,
     });
   }
 }
-
-/*  try {
-    const licencias = await em.find(Licencia, {}, { populate: ['conductor'] })
-    res.status(200).json({ message: 'Listado de las licencias de conductor: ', data: licencias })
-  } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener el listado de las licencias de conductor', error: error.message })
-  }
-} */
 
 async function findOne(req: Request, res: Response): Promise<void> {
   try {

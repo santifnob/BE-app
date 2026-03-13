@@ -4,6 +4,7 @@ import { orm } from "../shared/db/orm.js";
 import { Tren } from "../tren/tren.entity.js";
 import { Recorrido } from "../recorrido/recorrido.entity.js";
 import { Conductor } from "../conductor/conductor.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
 
 const em = orm.em;
 
@@ -33,21 +34,11 @@ function sanitizeViajeInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
-
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let viajes = await em.find(Viaje, where, {
+    const result = await getInfiniteScroll<Viaje>({
+      req,
+      em,
+      entity: Viaje,
+      message: "Listado de viajes:",
       populate: [
         "tren",
         "recorrido",
@@ -55,25 +46,14 @@ async function findAll(req: Request, res: Response): Promise<void> {
         "lineasCarga",
         "observaciones",
       ], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
-      orderBy: { id: "desc" },
-      limit: limit + 1,
     });
-    const hasNextPage = viajes.length > limit;
-    viajes = viajes.slice(0, limit);
 
-    res.status(200).json({
-      message: "Listado de los Viajes: ",
-      items: viajes,
-      nextCursor: hasNextPage ? viajes.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        message: "Error al obtener el listado de los Viajes",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error al obtener el listado de observaciones",
+      error: error.message,
+    });
   }
 }
 

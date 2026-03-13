@@ -3,6 +3,7 @@ import { Observacion } from "./observacion.entity.js";
 import { CategoriaDenuncia } from "../categoriaDenuncia/categoriaDenuncia.entity.js";
 import { orm } from "../shared/db/orm.js";
 import { Viaje } from "../viaje/viaje.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
 
 const em = orm.em;
 
@@ -26,28 +27,47 @@ function sanitizeObservacionInput(
   next();
 }
 
+// async function findAll(req: Request, res: Response): Promise<void> {
+//   try {
+//     const limit = Number(req.query.limit) || 10;
+//     const cursor = req.query.cursor ? Number(req.query.cursor) : null;
+
+//     const where = cursor ? { id: { $lt: cursor } } : {};
+
+//     let observaciones = await em.find(Observacion, where, {
+//       populate: ["viaje", "categoriaDenuncia", "viaje.recorrido"],
+//       orderBy: { id: "desc" },
+//       limit: limit + 1,
+//     });
+
+//     const hasNextPage = observaciones.length > limit;
+//     observaciones = observaciones.slice(0, limit);
+
+//     res.status(200).json({
+//       message: "Listado de observaciones",
+//       items: observaciones,
+//       nextCursor: hasNextPage ? observaciones.at(-1)!.id : null,
+//       hasNextPage,
+//     });
+//   } catch (error: any) {
+//     res.status(500).json({
+//       message: "Error al obtener el listado de observaciones",
+//       error: error.message,
+//     });
+//   }
+// }
+
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limit = Number(req.query.limit) || 10;
-    const cursor = req.query.cursor ? Number(req.query.cursor) : null;
-
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let observaciones = await em.find(Observacion, where, {
+    const result = await getInfiniteScroll<Observacion>({
+      req,
+      em,
+      entity: Observacion,
+      message: "Listado de observaciones:",
       populate: ["viaje", "categoriaDenuncia", "viaje.recorrido"],
-      orderBy: { id: "desc" },
-      limit: limit + 1,
     });
 
-    const hasNextPage = observaciones.length > limit;
-    observaciones = observaciones.slice(0, limit);
-
-    res.status(200).json({
-      message: "Listado de observaciones",
-      items: observaciones,
-      nextCursor: hasNextPage ? observaciones.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
       message: "Error al obtener el listado de observaciones",

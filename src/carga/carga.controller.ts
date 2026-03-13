@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { orm } from "../shared/db/orm.js";
 import { Carga } from "./carga.entity.js";
 import { TipoCarga } from "../tipoCarga/tipoCarga.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
 
 const em = orm.em;
 
@@ -36,35 +37,15 @@ function sanitizeCargaInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
-
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let cargas = await em.find(Carga, where, {
+    const result = await getInfiniteScroll<Carga>({
+      req,
+      em,
+      entity: Carga,
+      message: "Listado de las cargas:",
       populate: ["tipoCarga"], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
-      orderBy: { id: "desc" },
-      limit: limit + 1,
     });
 
-    const hasNextPage = cargas.length > limit;
-    cargas = cargas.slice(0, limit);
-
-    res.status(200).json({
-      message: "Listado de las cargas",
-      items: cargas,
-      nextCursor: hasNextPage ? cargas.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
       message: "Error al obtener el listado de las cargas",
@@ -72,6 +53,7 @@ async function findAll(req: Request, res: Response): Promise<void> {
     });
   }
 }
+
 
 async function findOne(req: Request, res: Response): Promise<void> {
   try {
