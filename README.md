@@ -6,7 +6,7 @@ This is the backend app from our project
 [FE-app](https://github.com/santifnob/FE-app)
 
 ## Reglas de negocio
-Negocio:
+### Negocio:
 - Todos los codigos son (int)
 - Todas las entidades tienen una 'Base entity', en la cual guardamos cuando se crea y un listado de cuando se actualiza
 
