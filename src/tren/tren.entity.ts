@@ -24,4 +24,15 @@ export class Tren extends BaseEntity {
 
   @OneToMany(() => Viaje, (viaje) => viaje.tren, { cascade: [Cascade.ALL] })
   viajes = new Collection<Viaje>(this);
+
+  async tieneViajeEntre(fechaComienzo: Date, fechaFin: Date): Promise<Boolean> {
+    await this.viajes.loadItems();
+    for (const viaje of this.viajes.getItems()) {
+      const valido = !viaje.validarSolapamiento(fechaComienzo, fechaFin) && viaje.estaActivo();
+      if (valido) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
