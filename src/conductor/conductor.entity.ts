@@ -35,4 +35,15 @@ export class Conductor extends BaseEntity {
 
   @Property({ nullable: false })
   estado!: string;
+
+  async tieneLicenciaValida(fechaComienzo: Date, fechaFin: Date): Promise<Boolean> {
+    // await this.licencias.loadItems();
+    for (const licencia of this.licencias.getItems()) {
+      const isValid = licencia.validarLicencia(fechaComienzo, fechaFin);
+      if (isValid) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
