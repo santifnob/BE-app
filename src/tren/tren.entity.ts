@@ -26,13 +26,12 @@ export class Tren extends BaseEntity {
   viajes = new Collection<Viaje>(this);
 
   async tieneViajeEntre(fechaComienzo: Date, fechaFin: Date): Promise<Boolean> {
-    await this.viajes.loadItems();
     for (const viaje of this.viajes.getItems()) {
-      const valido = !viaje.validarSolapamiento(fechaComienzo, fechaFin) && viaje.estaActivo();
-      if (valido) {
+      if (viaje.validarSolapamiento(fechaComienzo, fechaFin) && viaje.estaActivo()) {
         return true;
       }
     }
     return false;
   }
+
 }

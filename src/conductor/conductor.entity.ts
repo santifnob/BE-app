@@ -37,10 +37,18 @@ export class Conductor extends BaseEntity {
   estado!: string;
 
   async tieneLicenciaValida(fechaComienzo: Date, fechaFin: Date): Promise<Boolean> {
-    await this.licencias.loadItems();
     for (const licencia of this.licencias.getItems()) {
       const isValid = licencia.validarLicencia(fechaComienzo, fechaFin);
       if (isValid) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  async tieneViajeEntre(fechaComienzo: Date, fechaFin: Date): Promise<Boolean> {
+    for (const viaje of this.viajes.getItems()) {
+      if (viaje.validarSolapamiento(fechaComienzo, fechaFin) && viaje.estaActivo()) {
         return true;
       }
     }
