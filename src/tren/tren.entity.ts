@@ -25,13 +25,14 @@ export class Tren extends BaseEntity {
   @OneToMany(() => Viaje, (viaje) => viaje.tren, { cascade: [Cascade.ALL] })
   viajes = new Collection<Viaje>(this);
 
-  async tieneViajeEntre(fechaComienzo: Date, fechaFin: Date): Promise<Boolean> {
+  async tieneViajeEntre(fechaComienzo: Date, fechaFin: Date, idViajeToEdit?: Number): Promise<Boolean> {
     for (const viaje of this.viajes.getItems()) {
-      if (viaje.validarSolapamiento(fechaComienzo, fechaFin) && viaje.estaActivo()) {
+      const mismoViaje = idViajeToEdit && idViajeToEdit == viaje.id
+    
+      if (!mismoViaje && viaje.validarSolapamiento(fechaComienzo, fechaFin) && viaje.estaActivo()) {
         return true;
       }
     }
     return false;
   }
-
 }

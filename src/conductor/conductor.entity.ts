@@ -46,9 +46,11 @@ export class Conductor extends BaseEntity {
     return false;
   }
 
-  async tieneViajeEntre(fechaComienzo: Date, fechaFin: Date): Promise<Boolean> {
+  async tieneViajeEntre(fechaComienzo: Date, fechaFin: Date, idViajeToEdit?: number): Promise<Boolean> {
     for (const viaje of this.viajes.getItems()) {
-      if (viaje.validarSolapamiento(fechaComienzo, fechaFin) && viaje.estaActivo()) {
+      const mismoViaje = idViajeToEdit && idViajeToEdit === viaje.id
+      
+      if (!mismoViaje && viaje.validarSolapamiento(fechaComienzo, fechaFin) && viaje.estaActivo()) {
         return true;
       }
     }

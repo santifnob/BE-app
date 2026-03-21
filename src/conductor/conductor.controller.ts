@@ -64,16 +64,6 @@ async function findAll(req: Request, res: Response): Promise<void> {
   }
 }
 
-/* {
-  try {
-    console.log('aca')
-    const conductores = await em.find(Conductor, {}, { populate: ['licencias', 'viajes'] })
-    res.status(200).json({ message: 'Listado de los conductores:', data: conductores })
-  } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener el listado de los conductores', error: error.message })
-  }
-} */
-
 async function findOne(req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id);
@@ -100,7 +90,6 @@ async function findOne(req: Request, res: Response): Promise<void> {
 
 async function add(req: Request, res: Response): Promise<void> {
   try {
-    // console.log('Sanitized input:', req.body.sanitizedInput) para ver que llega bien
     const conductor = em.create(Conductor, req.body.sanitizedInput);
     await em.flush();
     res

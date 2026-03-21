@@ -6,6 +6,7 @@ import {
   update,
   remove,
   sanitizeViajeInput,
+  viajeValidation
 } from "./viaje.controller.js";
 
 export const viajeRouter = Router();
@@ -21,3 +22,4 @@ viajeRouter.get("/:id", asyncHandler(findOne));
 viajeRouter.post("/", sanitizeViajeInput, asyncHandler(add));
 viajeRouter.put("/:id", sanitizeViajeInput, asyncHandler(update));
 viajeRouter.delete("/:id", asyncHandler(remove));
+viajeRouter.get("/validation", asyncHandler(viajeValidation))

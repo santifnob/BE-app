@@ -99,12 +99,38 @@ async function add(req: Request, res: Response): Promise<void> {
     }
 
     // Validación de estado del tren: debe estar disponible en la fecha de inicio
-    const estadoTren = await em.findOne(EstadoTren, { tren: tren, estado: "Activo",fechaVigencia: { $lte: fechaIni } }, { orderBy: { fechaVigencia: 'DESC' } });
-    if (!estadoTren || estadoTren.nombre !== "Disponible") {
-      res.status(400).json({ message: 'El tren no esta disponible en la fecha de inicio del viaje' });
+    
+    const estadoAlInicio = await em.findOne(EstadoTren, { 
+      tren: tren, 
+      estado: "Activo", 
+      fechaVigencia: { $lte: fechaIni } 
+    }, { orderBy: { fechaVigencia: 'DESC' } });
+
+    if (!estadoAlInicio || estadoAlInicio.nombre !== "Disponible") {
+      res.status(400).json({ 
+        message: `El tren no está disponible al inicio del viaje (Estado actual: ${estadoAlInicio?.nombre || 'Sin estado'})` 
+      });
       return;
     }
-    
+
+    // Validar si hay algún cambio de estado "prohibido" DURANTE el viaje
+    const cambioDuranteViaje = await em.findOne(EstadoTren, {
+      tren: tren,
+      estado: "Activo",
+      nombre: { $ne: "Disponible" }, // Buscamos cualquier cosa que NO sea disponible
+      fechaVigencia: { 
+        $gt: fechaIni,
+        $lte: fechaFin  
+      }
+    });
+
+    if (cambioDuranteViaje) {
+      res.status(400).json({ 
+        message: `Conflicto de disponibilidad: el tren pasará a estado '${cambioDuranteViaje.nombre}' el día ${cambioDuranteViaje.fechaVigencia}` 
+      });
+      return;
+    }
+
     const idRecorrido = Number.parseInt(req.body.sanitizedInput.idRecorrido);
     const recorrido = await em.findOneOrFail(Recorrido, { id: idRecorrido });
     req.body.sanitizedInput.recorrido = recorrido;
@@ -139,12 +165,11 @@ async function update(req: Request, res: Response): Promise<void> {
     const fechaFin = new Date(req.body.sanitizedInput.fechaFin);
     const fechaIni = new Date(req.body.sanitizedInput.fechaIni);
 
-    if (req.body.sanitizedInput.idViaje !== undefined) {
-      const idViaje = Number.parseInt(req.body.sanitizedInput.idViaje);
-      const viaje = await em.findOneOrFail(Viaje, { id: idViaje });
-      req.body.sanitizedInput.viaje = viaje;
-      req.body.sanitizedInput.idViaje = undefined;
-    }
+    const idViaje = Number.parseInt(req.body.sanitizedInput.idViaje);
+    const viaje = await em.findOneOrFail(Viaje, { id: idViaje });
+    req.body.sanitizedInput.viaje = viaje;
+    req.body.sanitizedInput.idViaje = undefined;
+
 
     if (req.body.sanitizedInput.idRecorrido !== undefined) {
       const idRecorrido = Number.parseInt(req.body.sanitizedInput.idRecorrido);
@@ -163,7 +188,7 @@ async function update(req: Request, res: Response): Promise<void> {
       res.status(400).json({ message: 'El conductor no tiene una licencia valida' });
       return;
       } 
-      if(await conductor.tieneViajeEntre(fechaIni, fechaFin)){
+      if(await conductor.tieneViajeEntre(fechaIni, fechaFin, idViaje)){
         res.status(400).json({ message: 'El conductor ya tiene un viaje programado entre esas fechas' });
         return;
       }
@@ -175,16 +200,41 @@ async function update(req: Request, res: Response): Promise<void> {
       req.body.sanitizedInput.tren = tren;
       req.body.sanitizedInput.idTren = undefined;
 
-      if(await tren.tieneViajeEntre(fechaIni, fechaFin)){
-      res.status(400).json({ message: 'El tren ya tiene un viaje programado entre esas fechas' });
-      return;
-    }
+      if(await tren.tieneViajeEntre(fechaIni, fechaFin, idViaje)){
+        res.status(400).json({ message: 'El tren ya tiene un viaje programado entre esas fechas' });
+        return;
+      }
 
       // Validación de estado del tren: debe estar disponible en la fecha de inicio
-      const estadoTren = await em.findOne(EstadoTren, { tren: tren, estado: "Activo", fechaVigencia: { $lte: fechaIni } }, { orderBy: { fechaVigencia: 'DESC' } });
-      if (!estadoTren || estadoTren.nombre !== "Disponible") {
-        res.status(400).json({ message: 'El tren no esta disponible en la fecha de inicio del viaje' });
+      const estadoAlInicio = await em.findOne(EstadoTren, { 
+      tren: tren, 
+      estado: "Activo", 
+      fechaVigencia: { $lte: fechaIni } 
+        }, { orderBy: { fechaVigencia: 'DESC' } });
+
+      if (!estadoAlInicio || estadoAlInicio.nombre !== "Disponible") {
+        res.status(400).json({ 
+          message: `El tren no está disponible al inicio del viaje (Estado actual: ${estadoAlInicio?.nombre || 'Sin estado'})` 
+        });
         return;
+      }
+
+      // Validar si hay algún cambio de estado "prohibido" DURANTE el viaje
+      const cambioDuranteViaje = await em.findOne(EstadoTren, {
+        tren: tren,
+        estado: "Activo",
+        nombre: { $ne: "Disponible" }, // Buscamos cualquier cosa que NO sea disponible
+        fechaVigencia: { 
+          $gt: fechaIni,
+          $lte: fechaFin  
+        }
+      });
+
+      if (cambioDuranteViaje) {
+          res.status(400).json({ 
+          message: `Conflicto de disponibilidad: el tren pasará a estado '${cambioDuranteViaje.nombre}' el día ${cambioDuranteViaje.fechaVigencia}` 
+        })
+        return
       }
     }
 
@@ -232,4 +282,76 @@ async function remove(req: Request, res: Response): Promise<void> {
   }
 }
 
-export { sanitizeViajeInput, findAll, findOne, remove, add, update }; // ADD y UPDATE
+// Mismas validaciones que en add y update, pero para que funcione a momento de completar formulario en FE
+async function viajeValidation(req: Request, res: Response): Promise<void> {
+    try {
+      const inicio = new Date(req.query.inicio as string);
+      const fin = new Date(req.query.fin as string);
+      const idViajeToEdit = req.query.idViajeToEdit ? Number.parseInt(req.query.idViajeToEdit as string) : undefined;
+      
+      const idTren = req.query.idTren ? Number.parseInt(req.query.idTren as string) : undefined;
+      if(idTren){
+        const tren = await em.findOneOrFail(Tren, { id: idTren }, { populate: ["viajes"] })
+        
+        if(await tren.tieneViajeEntre(inicio, fin, idViajeToEdit)){
+          res.status(400).json({ message: 'El tren ya tiene un viaje programado entre esas fechas' });
+          return;    
+        }
+        
+          // Validación de estado del tren: debe estar disponible en la fecha de inicio
+        const estadoAlInicio = await em.findOne(EstadoTren, { 
+        tren: tren, 
+        estado: "Activo", 
+        fechaVigencia: { $lte: inicio } 
+          }, { orderBy: { fechaVigencia: 'DESC' } });
+
+        if (!estadoAlInicio || estadoAlInicio.nombre !== "Disponible") {
+          res.status(400).json({ 
+            message: `El tren no está disponible al inicio del viaje (Estado actual: ${estadoAlInicio?.nombre || 'Sin estado'})` 
+          });
+          return;
+        }
+
+        // Validar si hay algún cambio de estado "prohibido" DURANTE el viaje
+        const cambioDuranteViaje = await em.findOne(EstadoTren, {
+          tren: tren,
+          estado: "Activo",
+          nombre: { $ne: "Disponible" }, // Buscamos cualquier cosa que NO sea disponible
+          fechaVigencia: { 
+            $gt: inicio,
+            $lte: fin  
+          }
+        });
+
+        if (cambioDuranteViaje) {
+            res.status(400).json({ 
+            message: `Conflicto de disponibilidad: el tren pasará a estado '${cambioDuranteViaje.nombre}' el día ${cambioDuranteViaje.fechaVigencia}` 
+          })
+          return
+        }
+      }
+      
+      const idConductor = req.query.idConductor ? Number.parseInt(req.query.idConductor as string) : undefined;
+      if(idConductor){
+        const conductor = await em.findOneOrFail(Conductor, { id: idConductor }, { populate: ["licencias", "viajes"] });
+
+        if(await !conductor.tieneLicenciaValida(inicio, fin)){
+          res.status(400).json({ message: 'El conductor no tiene una licencia valida' });
+          return;
+        } 
+        if(await conductor.tieneViajeEntre(inicio, fin, idViajeToEdit)){
+          res.status(400).json({ message: 'El conductor ya tiene un viaje programado entre esas fechas' });
+          return;
+        }
+      }
+
+      res.status(200).json({ message: 'Validación exitosa' });
+    }
+    catch (error: any) {
+    res
+      .status(500)
+      .json({ message: 'Error en la validación del "Viaje"', error: error.message });
+  }
+} 
+
+export { sanitizeViajeInput, findAll, findOne, remove, add, update, viajeValidation }; // ADD y UPDATE
