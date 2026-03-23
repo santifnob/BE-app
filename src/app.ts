@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
+import 'dotenv/config.js'; 
 import { trenRouter } from "./tren/tren.routes.js";
 import { orm, syncSchema } from "./shared/db/orm.js";
 import { RequestContext } from "@mikro-orm/core";
@@ -19,13 +20,20 @@ import { viajeRouter } from "./viaje/viaje.routes.js";
 import { authenticateToken } from "./middlewares/authMiddlewares.js";
 import { findOneByMail } from "./conductor/conductor.controller.js";
 
+const PORT = process.env.PORT || 3000;
+export const SECRET_KEY = process.env.SECRET_KEY || "llavetemporal"; // variables que se deberian guardar en un archivo .env
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASS = process.env.ADMIN_PASS;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
 const app = express();
 app.use(express.json());
 app.use(cookieParser()); // Middleware para parsear las cookies entrantes
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: FRONTEND_URL,
     methods: ["POST", "GET", "DELETE", "PUT"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true, // Permite enviar cookies,
@@ -48,11 +56,6 @@ app.use("/api/tipoCarga", tipoCargaRouter); // Gonza
 app.use("/api/tren", trenRouter); // Gonza
 app.use("/api/viaje", viajeRouter); // Todos
 
-export const secretKey = "llaveTemporal"; // variables que se deberian guardar en un archivo .env
-const ADMIN_EMAIL = "admin@admin.com";
-const ADMIN_PASS = "admin";
-
-// test para el login
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body.user;
   let user = null;
@@ -84,13 +87,13 @@ app.post("/api/auth/login", async (req, res) => {
     password === user.password &&
     user.estado === "Activo"
   ) {
-    const token = jwt.sign({ userId: user.id, role: user.role }, secretKey, {
+    const token = jwt.sign({ userId: user.id, role: user.role }, SECRET_KEY, {
       expiresIn: "1h",
     });
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // por ahora se mantiene sin https
+      secure: IS_PRODUCTION, // en caso de false se mantiene sin https
       sameSite: "lax",
       maxAge: 3600000, // 1 hora
     });
@@ -133,6 +136,7 @@ app.use((_, res) => {
 
 await syncSchema(); // nunca en produccion
 
-app.listen(3000, () => {
-  console.log("Server is running on http://localhost:3000/");
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}/`);
+  console.log(`CORS enabled for: ${FRONTEND_URL}`);
 });

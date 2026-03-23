@@ -34,6 +34,7 @@ async function findAll(req: Request, res: Response): Promise<void> {
       em,
       entity: EstadoTren,
       message: "Listado de estados de trenes:",
+      populate: ["tren"]
     });
 
     res.status(200).json(result);

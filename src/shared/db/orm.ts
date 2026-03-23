@@ -4,11 +4,17 @@ import { SqlHighlighter } from "@mikro-orm/sql-highlighter";
 export const orm = await MikroORM.init({
   entities: ["dist/**/*.entity.js"],
   entitiesTs: ["src/**/*.entity.ts"],
-  dbName: "ferrocarril",
+  dbName: process.env.DB_NAME || "ferrocarril",
   type: "mysql",
-  clientUrl: "mysql://admin:admin@localhost:3306/ferrocarril",
+  host: process.env.DB_HOST || "localhost",
+  port: Number(process.env.DB_PORT) || 3306,
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASS,
+
   highlighter: new SqlHighlighter(),
-  debug: true,
+
+  debug: process.env.DB_PASS === "true",
+
   schemaGenerator: {
     // never in production
     disableForeignKeys: true,
