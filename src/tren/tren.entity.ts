@@ -27,8 +27,9 @@ export class Tren extends BaseEntity {
 
   async tieneViajeEntre(fechaComienzo: Date, fechaFin: Date, idViajeToEdit?: Number): Promise<Boolean> {
     for (const viaje of this.viajes.getItems()) {
+            
       const mismoViaje = idViajeToEdit && idViajeToEdit == viaje.id
-    
+
       if (!mismoViaje && viaje.validarSolapamiento(fechaComienzo, fechaFin) && viaje.estaActivo()) {
         return true;
       }

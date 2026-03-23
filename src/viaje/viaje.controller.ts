@@ -52,7 +52,7 @@ async function findAll(req: Request, res: Response): Promise<void> {
     res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
-      message: "Error al obtener el listado de observaciones",
+      message: "Error al obtener el listado de viajes",
       error: error.message,
     });
   }
@@ -289,9 +289,13 @@ async function viajeValidation(req: Request, res: Response): Promise<void> {
       const fin = new Date(req.query.fin as string);
       const idViajeToEdit = req.query.idViajeToEdit ? Number.parseInt(req.query.idViajeToEdit as string) : undefined;
       
-      const idTren = req.query.idTren ? Number.parseInt(req.query.idTren as string) : undefined;
+      const idTren = req.query.trenId ? Number.parseInt(req.query.trenId as string) : undefined;
       if(idTren){
-        const tren = await em.findOneOrFail(Tren, { id: idTren }, { populate: ["viajes"] })
+        const tren = await em.findOne(Tren, { id: idTren }, { populate: ["viajes"] })
+        if (!tren) {
+          res.status(400).json({ message: 'Tren no encontrado' });
+          return;
+        }
         
         if(await tren.tieneViajeEntre(inicio, fin, idViajeToEdit)){
           res.status(400).json({ message: 'El tren ya tiene un viaje programado entre esas fechas' });
@@ -331,11 +335,15 @@ async function viajeValidation(req: Request, res: Response): Promise<void> {
         }
       }
       
-      const idConductor = req.query.idConductor ? Number.parseInt(req.query.idConductor as string) : undefined;
+      const idConductor = req.query.conductorId ? Number.parseInt(req.query.conductorId as string) : undefined;
       if(idConductor){
-        const conductor = await em.findOneOrFail(Conductor, { id: idConductor }, { populate: ["licencias", "viajes"] });
+        const conductor = await em.findOne(Conductor, { id: idConductor }, { populate: ["licencias", "viajes"] });
+        if (!conductor) {
+          res.status(400).json({ message: 'Conductor no encontrado' });
+          return;
+        }
 
-        if(await !conductor.tieneLicenciaValida(inicio, fin)){
+        if(!(await conductor.tieneLicenciaValida(inicio, fin))){
           res.status(400).json({ message: 'El conductor no tiene una licencia valida' });
           return;
         } 

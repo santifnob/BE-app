@@ -17,9 +17,9 @@ function asyncHandler(fn: Function) {
   };
 }
 
+viajeRouter.get("/validation", asyncHandler(viajeValidation))
 viajeRouter.get("/", asyncHandler(findAll));
 viajeRouter.get("/:id", asyncHandler(findOne));
 viajeRouter.post("/", sanitizeViajeInput, asyncHandler(add));
 viajeRouter.put("/:id", sanitizeViajeInput, asyncHandler(update));
 viajeRouter.delete("/:id", asyncHandler(remove));
-viajeRouter.get("/validation", asyncHandler(viajeValidation))
