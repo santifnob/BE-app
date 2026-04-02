@@ -30,6 +30,7 @@ This is the backend app from our project
 - Tiene 'Nombre' (str) y fecha de vigencia (dd/mm/yyyy)
 - Tiene un unico 'Tren'
 - 2 tipos de estados, 'Activo' e 'Inactivo'
+- Se utiliza el nombre "Disponible" para hacer referencia a que el tren esta en condiciones para realizar viajes 
 
 ### Tren:
 - Esta codificado, tiene 'Modelo' (str) y 'Color' (str)
