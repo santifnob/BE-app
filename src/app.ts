@@ -26,6 +26,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASS = process.env.ADMIN_PASS;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const COOKIE_MAX_AGE = process.env.COOKIE_MAX_AGE ? Number.parseInt(process.env.COOKIE_MAX_AGE) : 3600000
 
 const app = express();
 app.use(express.json());
@@ -44,17 +45,17 @@ app.use((req, res, next) => {
   RequestContext.create(orm.em, next);
 });
 
-app.use("/api/carga", cargaRouter); // Gonza
-app.use("/api/categoriaDenuncia", catRouter); // Carlos
-app.use("/api/lineaCarga", lineaCargaRouter); // Santi
-app.use("/api/conductor", conductorRouter); // Carlos
-app.use("/api/estadoTren", estadoTrenRouter); // Santi
-app.use("/api/licencia", licenciaRouter); // Santi
-app.use("/api/observacion", observacionRouter); // Carlos
-app.use("/api/recorrido", recorridoRouter); // Santi
-app.use("/api/tipoCarga", tipoCargaRouter); // Gonza
-app.use("/api/tren", trenRouter); // Gonza
-app.use("/api/viaje", viajeRouter); // Todos
+app.use("/api/carga", cargaRouter);
+app.use("/api/categoriaDenuncia", catRouter);
+app.use("/api/lineaCarga", lineaCargaRouter);
+app.use("/api/conductor", conductorRouter);
+app.use("/api/estadoTren", estadoTrenRouter);
+app.use("/api/licencia", licenciaRouter);
+app.use("/api/observacion", observacionRouter);
+app.use("/api/recorrido", recorridoRouter); 
+app.use("/api/tipoCarga", tipoCargaRouter); 
+app.use("/api/tren", trenRouter); 
+app.use("/api/viaje", viajeRouter); 
 
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body.user;
@@ -88,14 +89,14 @@ app.post("/api/auth/login", async (req, res) => {
     user.estado === "Activo"
   ) {
     const token = jwt.sign({ userId: user.id, role: user.role }, SECRET_KEY, {
-      expiresIn: "1h",
+      expiresIn: COOKIE_MAX_AGE / 1000,
     });
 
     res.cookie("token", token, {
       httpOnly: true,
       secure: IS_PRODUCTION, // en caso de false se mantiene sin https
       sameSite: "lax",
-      maxAge: 3600000, // 1 hora
+      maxAge: COOKIE_MAX_AGE, // 1 hora
     });
 
     return res
