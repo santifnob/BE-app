@@ -4,6 +4,7 @@ import cors from "cors";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import 'dotenv/config.js'; 
+import dotenv from "dotenv";
 import { trenRouter } from "./tren/tren.routes.js";
 import { orm, syncSchema } from "./shared/db/orm.js";
 import { RequestContext } from "@mikro-orm/core";
@@ -17,8 +18,16 @@ import { catRouter } from "./categoriaDenuncia/categoriaDenuncia.routes.js";
 import { observacionRouter } from "./observacion/observacion.routes.js";
 import { lineaCargaRouter } from "./lineaCarga/lineaCarga.routes.js";
 import { viajeRouter } from "./viaje/viaje.routes.js";
-import { authenticateToken } from "./middlewares/authMiddlewares.js";
+import { authenticateToken, authorizeRole } from "./middlewares/authMiddlewares.js";
 import { findOneByMail } from "./conductor/conductor.controller.js";
+
+if (process.env.NODE_ENV === "test" && process.env.DB_NAME !== "ferrocarril_test") {
+  throw new Error("La DB utilizada no es la correcta para los tests. Db utilizada: " + process.env.DB_NAME);
+}
+
+dotenv.config({
+  path: process.env.NODE_ENV === "test" ? ".env.test" : ".env" // Carga diferentes .env según si estamos en test o desarrollo/producción (principalmente se diferencian las bases de datos)
+})
 
 const PORT = process.env.PORT || 3000;
 export const SECRET_KEY = process.env.SECRET_KEY || "llavetemporal"; // variables que se deberian guardar en un archivo .env
@@ -44,6 +53,12 @@ app.use(
 app.use((req, res, next) => {
   RequestContext.create(orm.em, next);
 });
+
+// Los middlewares authenticateToken y authorizeRol se deberían utilziar por cada ruta que arranca con api para producción
+
+if(process.env.NODE_ENV === "production" || process.env.NODE_ENV === "test"){ // También se quiere probar que la autenticación funcione en los tests de integración
+  app.use("/api", authenticateToken);
+}
 
 app.use("/api/carga", cargaRouter);
 app.use("/api/categoriaDenuncia", catRouter);
@@ -135,9 +150,13 @@ app.use((_, res) => {
   return res.status(404).json({ message: "Ruta no encontrada" });
 });
 
-await syncSchema(); // nunca en produccion
+if(process.env.NODE_ENV !== "production"){
+  await syncSchema(); // nunca en produccion
+}
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}/`);
   console.log(`CORS enabled for: ${FRONTEND_URL}`);
 });
+
+export { app }; // exportar instancia de app para usar en los test de integración

@@ -13,7 +13,7 @@ export const orm = await MikroORM.init({
 
   highlighter: new SqlHighlighter(),
 
-  debug: process.env.DB_PASS === "true",
+  debug: process.env.DB_DEBUG === "true",
 
   schemaGenerator: {
     // never in production
@@ -26,8 +26,12 @@ export const orm = await MikroORM.init({
 export const syncSchema = async (): Promise<void> => {
   const generator = orm.getSchemaGenerator();
 
-  //await generator.dropSchema()
-  //await generator.createSchema()
-
-  await generator.updateSchema();
+  if(process.env.NODE_ENV === "test"){
+    await generator.dropSchema()
+    await generator.createSchema()
+  }
+  if(process.env.NODE_ENV !== "production"){
+    await generator.updateSchema();
+  }
+  
 };
