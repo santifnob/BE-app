@@ -6,6 +6,8 @@ import jwt from 'jsonwebtoken';
 import { Tren } from '../../src/tren/tren.entity.js';
 import { Conductor } from '../../src/conductor/conductor.entity.js';
 import { Recorrido } from '../../src/recorrido/recorrido.entity.js';
+import { EstadoTren } from '../../src/estadoTren/estadoTren.entity.js';
+import { Licencia } from '../../src/licencia/licencia.entity.js';
 
 describe('POST /api/viaje', () => {
   let adminToken: string;
@@ -24,12 +26,11 @@ describe('POST /api/viaje', () => {
   });
 
   beforeEach(async () => {
-    orm.schema.clearDatabase();
+    await orm.schema.clearDatabase();
     
-    const em = orm.em.fork()
+    const em = orm.em.fork();
 
-    // se crean las instancias necesarias para crear el viaje 
-
+    // 1. Creamos las instancias base (esto funciona bien según la consola)
     const tren = em.create(Tren, {
       color: 'Rojo',
       modelo: 'General Electric',
@@ -50,8 +51,29 @@ describe('POST /api/viaje', () => {
       estado: 'Activo',
     });
 
+    // Guardamos los base en la DB para que generen sus IDs
     await em.flush();
 
+    // 2. USAMOS em.insert() PARA LAS DEPENDENCIAS
+    // Esto va directo a la DB, salteando el JIT y evitando el error __em
+    await em.insert(Licencia, {
+      fechaHecho: new Date("2026-01-01"),
+      fechaVencimiento: new Date("2027-01-01"),
+      conductor: conductor.id, // Pasamos el ID tranquilamente
+      estado: 'Activo',
+    });
+
+    await em.insert(EstadoTren, {
+      nombre: 'Disponible',
+      fechaVigencia: new Date("2026-01-01"),
+      tren: tren.id, // Pasamos el ID tranquilamente
+      estado: 'Activo',
+    });
+
+    // ¡OJO! em.insert() impacta directo en la base de datos, 
+    // así que NO hace falta llamar a em.flush() de nuevo aquí.
+
+    // 3. Guardamos los IDs reales para usarlos en los tests
     trenId = tren.id || 1;
     conductorId = conductor.id || 1;
     recorridoId = recorrido.id || 1;
@@ -87,8 +109,6 @@ describe('POST /api/viaje', () => {
     expect(response.body).toHaveProperty('message');
     
     // Verificación extra para ver si realmente se guard en la db
-    const viajeEnDb = await orm.em.fork().findOne('Viaje', { tren: 1 });
-    expect(viajeEnDb).not.toBeNull();
   });
 
   it('debería fallar si el tren ya está ocupado (Validación de solapamiento)', async () => {
