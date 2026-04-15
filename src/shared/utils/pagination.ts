@@ -52,8 +52,8 @@ export async function getInfiniteScroll<T extends { id?: any }>(
   // Combinamos los filtros base que pases con la lógica del cursor
   const safeBaseWhere = (baseWhere && typeof baseWhere === 'object') ? baseWhere : {};
   const where: FilterQuery<T> = cursor
-    ? { $and: [baseWhere, { id: { $lt: cursor } }] } as FilterQuery<T>
-    : baseWhere;
+    ? { $and: [safeBaseWhere, { id: { $lt: cursor } }] } as FilterQuery<T>
+    : safeBaseWhere;
 
   // 4. Búsqueda en la base de datos
   // casteamos para evitar errores de tipo con las keys dinámicas de MikroORM

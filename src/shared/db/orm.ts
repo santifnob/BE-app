@@ -21,7 +21,7 @@ export const orm = await MikroORM.init({
   port: Number(process.env.DB_PORT) || 3306,
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASS,
-  forceEntityConstructor: true,
+  forceEntityConstructor: process.env.NODE_ENV === "test",
 
   highlighter: new SqlHighlighter(),
 

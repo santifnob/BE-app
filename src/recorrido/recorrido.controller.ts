@@ -28,18 +28,64 @@ function sanitizeRecorridoInput(
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
     const baseWhere: any = {};
-    const filterColumn = req.query.filterColumn;
-    const filterValue = req.query.filterValue;
 
-    if (filterColumn && filterValue) {
-      const valueStr = filterValue.toString();
-      switch (filterColumn) {
-        case "ciudadLlegada": baseWhere.ciudadLlegada = filterValue.toString(); break;
-        case "ciudadSalida": baseWhere.ciudadSalida = filterValue.toString(); break; 
-        case "estado": baseWhere.estado = filterValue.toString(); break;
-        case "totalKm": baseWhere.totalKm = parseInt(filterValue.toString()); break;
-        default: break;
+    // Filtro: ciudadSalida (búsqueda parcial con $like)
+    if (req.query.ciudadSalida && typeof req.query.ciudadSalida === 'string') {
+      const ciudadSalida = req.query.ciudadSalida.trim();
+      if (ciudadSalida.length > 0) {
+        baseWhere.ciudadSalida = { $like: `%${ciudadSalida}%` };
       }
+    }
+
+    // Filtro: ciudadLlegada (búsqueda parcial con $like)
+    if (req.query.ciudadLlegada && typeof req.query.ciudadLlegada === 'string') {
+      const ciudadLlegada = req.query.ciudadLlegada.trim();
+      if (ciudadLlegada.length > 0) {
+        baseWhere.ciudadLlegada = { $like: `%${ciudadLlegada}%` };
+      }
+    }
+
+    // Filtro: estado (búsqueda exacta)
+    if (req.query.estado && typeof req.query.estado === 'string') {
+      const estado = req.query.estado.trim();
+      if (estado.length > 0) {
+        baseWhere.estado = estado;
+      }
+    }
+
+    // Filtro: totalKm (rango con minKm y/o maxKm)
+    const minKm = req.query.minKm ? Number(req.query.minKm) : null;
+    const maxKm = req.query.maxKm ? Number(req.query.maxKm) : null;
+
+    // Validar que ambos sean números válidos
+    if (minKm !== null && !Number.isFinite(minKm)) {
+      res.status(400).json({
+        message: "El parámetro 'minKm' debe ser un número válido",
+      });
+      return;
+    }
+
+    if (maxKm !== null && !Number.isFinite(maxKm)) {
+      res.status(400).json({
+        message: "El parámetro 'maxKm' debe ser un número válido",
+      });
+      return;
+    }
+
+    // Validar que minKm no sea mayor que maxKm
+    if (minKm !== null && maxKm !== null && minKm > maxKm) {
+      res.status(400).json({
+        message: "El parámetro 'minKm' no puede ser mayor que 'maxKm'",
+      });
+      return;
+    }
+
+    // Construir filtro de rango para totalKm
+    if (minKm !== null || maxKm !== null) {
+      const kmFilter: any = {};
+      if (minKm !== null) kmFilter.$gte = minKm;
+      if (maxKm !== null) kmFilter.$lte = maxKm;
+      baseWhere.totalKm = kmFilter;
     }
 
     const result = await getInfiniteScroll<Recorrido>({
@@ -47,16 +93,16 @@ async function findAll(req: Request, res: Response): Promise<void> {
       em,
       entity: Recorrido,
       message: "Listado de los recorridos: ",
-      baseWhere 
+      baseWhere,
     });
 
     res.status(200).json({
-      ...result
+      ...result,
     });
 
   } catch (error: any) {
     res.status(500).json({
-      message: "Error al obtener el listado de los trenes",
+      message: "Error al obtener el listado de los recorridos",
       error: error.message,
     });
   }

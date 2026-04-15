@@ -30,7 +30,6 @@ describe('POST /api/viaje', () => {
     
     const em = orm.em.fork();
 
-    // 1. Creamos las instancias base (esto funciona bien según la consola)
     const tren = em.create(Tren, {
       color: 'Rojo',
       modelo: 'General Electric',
@@ -54,8 +53,8 @@ describe('POST /api/viaje', () => {
     // Guardamos los base en la DB para que generen sus IDs
     await em.flush();
 
-    // 2. USAMOS em.insert() PARA LAS DEPENDENCIAS
-    // Esto va directo a la DB, salteando el JIT y evitando el error __em
+    // Se utiliza insert para evitar problemas de memoria del JIT y hacer inserts directos a la DB
+
     await em.insert(Licencia, {
       fechaHecho: new Date("2026-01-01"),
       fechaVencimiento: new Date("2027-01-01"),
@@ -70,10 +69,6 @@ describe('POST /api/viaje', () => {
       estado: 'Activo',
     });
 
-    // ¡OJO! em.insert() impacta directo en la base de datos, 
-    // así que NO hace falta llamar a em.flush() de nuevo aquí.
-
-    // 3. Guardamos los IDs reales para usarlos en los tests
     trenId = tren.id || 1;
     conductorId = conductor.id || 1;
     recorridoId = recorrido.id || 1;
