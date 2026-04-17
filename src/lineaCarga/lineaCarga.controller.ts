@@ -169,12 +169,16 @@ function buildBaseWhere(req: Request): any {
     }
   }
 
-  if(req.query.idCarga && !isNaN(Number(req.query.idCarga))) {
-    baseWhere.idCarga = Number(req.query.idCarga);
+  if(req.query.cargaId && !isNaN(Number(req.query.cargaId))) {
+    const carga = new Carga();
+      carga.id = Number(req.query.cargaId);
+    baseWhere.carga = carga;
   }
 
-  if(req.query.idViaje && !isNaN(Number(req.query.idViaje))) {
-    baseWhere.idViaje = Number(req.query.idViaje);
+  if(req.query.viajeId && !isNaN(Number(req.query.viajeId))) {
+    const viaje = new Viaje();
+    viaje.id = Number(req.query.viajeId);
+    baseWhere.viaje = viaje;
   }
 
   if(req.query.cantidadVagon && !isNaN(Number(req.query.cantidadVagon))) {
@@ -197,6 +201,19 @@ function buildBaseWhere(req: Request): any {
       fechaCreacionFilter.$lte = fechaCreacionFin;
     }
     baseWhere.createdAt = fechaCreacionFilter;
+  }
+
+  const maxCantidadVagon = req.query.maxCantidadVagon ? Number(req.query.maxCantidadVagon) : null;
+  const minCantidadVagon = req.query.minCantidadVagon ? Number(req.query.minCantidadVagon) : null;
+  if(minCantidadVagon !== null || maxCantidadVagon !== null) {
+    const cantidadVagonFilter: any = {};
+    if(minCantidadVagon !== null) {
+      cantidadVagonFilter.$gte = minCantidadVagon;
+    }
+    if(maxCantidadVagon !== null) {
+      cantidadVagonFilter.$lte = maxCantidadVagon;
+    }
+    baseWhere.cantidadVagon = cantidadVagonFilter;
   }
 
   return baseWhere;

@@ -210,12 +210,16 @@ function buildBaseWhere(req: Request): any {
     }
   }
 
-  if(req.query.idCategoria && !isNaN(Number(req.query.idCategoria))) {
-    baseWhere.idCategoria = Number(req.query.idCategoria);
+  if(req.query.categoriaDenunciaId && !isNaN(Number(req.query.categoriaDenunciaId))) {
+    const categoriaDenuncia = new CategoriaDenuncia();
+    categoriaDenuncia.id = Number(req.query.categoriaDenunciaId);
+    baseWhere.categoriaDenuncia = categoriaDenuncia;
   }
 
-  if(req.query.idViaje && !isNaN(Number(req.query.idViaje))) {
-    baseWhere.idViaje = Number(req.query.idViaje);
+  if(req.query.viajeId && !isNaN(Number(req.query.viajeId))) {
+    const viaje = new Viaje();
+    viaje.id = Number(req.query.viajeId);
+    baseWhere.viaje = viaje;
   }
 
   if(req.query.id && !isNaN(Number(req.query.id))) {
@@ -235,6 +239,7 @@ function buildBaseWhere(req: Request): any {
     }
     baseWhere.createdAt = fechaCreacionFilter;
   }
+
 
   return baseWhere;
 }

@@ -161,20 +161,6 @@ async function update(req: Request, res: Response): Promise<void> {
   }
 }
 
-/* DIFERENCIA
-async function update (req: Request, res: Response) {
-  try {
-    const id = Number.parseInt(req.params.id)
-    const Carga = em.getReference(Carga, id)
-    em.assign(Carga, req.body)
-    await em.flush()
-    res.status(200).json({ message: 'Carga actualizado', data: Carga })
-  } catch (error: any) {
-    res.status(500).json({ message: error.message })
-  }
-}
-*/
-
 async function remove(req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id);
@@ -225,6 +211,20 @@ function buildBaseWhere(req: Request): any {
       fechaCreacionFilter.$lte = fechaCreacionFin;
     }
     baseWhere.createdAt = fechaCreacionFilter;
+  }
+
+  
+  const minPrecio = req.query.minPrecio ? Number(req.query.minPrecio) : null;
+  const maxPrecio = req.query.maxPrecio ? Number(req.query.maxPrecio) : null;
+  if (minPrecio !== null || maxPrecio !== null) {
+    const precioFilter: any = {};
+    if (minPrecio !== null) {
+      precioFilter.$gte = minPrecio;
+    }
+    if (maxPrecio !== null) {
+      precioFilter.$lte = maxPrecio;
+    }
+    baseWhere.precio = precioFilter;
   }
 
   return baseWhere;

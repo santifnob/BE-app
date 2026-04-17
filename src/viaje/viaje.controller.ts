@@ -374,16 +374,22 @@ function buildBaseWhere(req: Request): any {
     }
   }
 
-  if(req.query.idTren && !isNaN(Number(req.query.idTren))) {
-    baseWhere.idTren = Number(req.query.idTren);
+  if(req.query.trenId && !isNaN(Number(req.query.trenId))) {
+    const tren = new Tren();
+    tren.id = Number(req.query.trenId);
+    baseWhere.tren = tren;
   }
 
-  if(req.query.idRecorrido && !isNaN(Number(req.query.idRecorrido))) {
-    baseWhere.idRecorrido = Number(req.query.idRecorrido);
+  if(req.query.recorridoId && !isNaN(Number(req.query.recorridoId))) {
+    const recorrido = new Recorrido();
+    recorrido.id = Number(req.query.recorridoId);
+    baseWhere.recorrido = recorrido;
   }
 
-  if(req.query.idConductor && !isNaN(Number(req.query.idConductor))) {
-    baseWhere.idConductor = Number(req.query.idConductor);
+  if(req.query.conductorId && !isNaN(Number(req.query.conductorId))) {
+    const conductor = new Conductor();
+    conductor.id = Number(req.query.conductorId);
+    baseWhere.conductor = conductor;
   }
 
   if(req.query.id && !isNaN(Number(req.query.id))) {
