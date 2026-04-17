@@ -30,12 +30,15 @@ function sanitizeLicenciaInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
+    const baseWhere: any = buildBaseWhere(req);
+
     const result = await getInfiniteScroll<Licencia>({
       req,
       em,
       entity: Licencia,
       message: "Listado de licencias:",
       populate: ["conductor"],
+      baseWhere
     });
 
     res.status(200).json(result);
@@ -120,17 +123,6 @@ async function add(req: Request, res: Response): Promise<void> {
       });
   }
 }
-/* try {
-    const idConductor = Number.parseInt(req.body.sanitizedInput.idConductor)
-    const conductor = await em.findOneOrFail(Conductor, { id: idConductor })
-    req.body.sanitizedInput.conductor = conductor
-    const licencia = em.create(Licencia, req.body.sanitizedInput)
-    await em.flush()
-    res.status(201).json({ message: 'La "Licencia de conductor" ha sido creada con exito: ', data: licencia })
-  } catch (error: any) {
-    res.status(500).json({ message: 'Error al agregar la "Licencia de conductor"', error: error.message })
-  }
-} */
 
 async function update(req: Request, res: Response): Promise<void> {
   try {
@@ -181,6 +173,67 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere:any = {};
+  if(req.query.estado && typeof req.query.estado === 'string') {
+    const estado = req.query.estado.trim();
+    if(estado.length > 0) {
+      baseWhere.estado = estado;
+    }
+  }
+
+  const fechaHechoIni = req.query.fechaHechoIni ? new Date(req.query.fechaHechoIni as string) : null;
+  const fechaHechoFin = req.query.fechaHechoFin ? new Date(req.query.fechaHechoFin as string) : null;
+  if (fechaHechoIni !== null || fechaHechoFin !== null) {
+    const fechaHechoFilter: any = {};
+    if (fechaHechoIni !== null) {
+      fechaHechoFilter.$gte = fechaHechoIni;
+    }
+    if (fechaHechoFin !== null) {
+      fechaHechoFilter.$lte = fechaHechoFin;
+    }
+    baseWhere.fechaHecho = fechaHechoFilter;
+  }
+  
+  const fechaVencimientoIni = req.query.fechaVencimientoIni ? new Date(req.query.fechaVencimientoIni as string) : null;
+  const fechaVencimientoFin = req.query.fechaVencimientoFin ? new Date(req.query.fechaVencimientoFin as string) : null;
+  if (fechaVencimientoIni !== null || fechaVencimientoFin !== null) {
+    const fechaVencimientoFilter: any = {};
+    if (fechaVencimientoIni !== null) {
+      fechaVencimientoFilter.$gte = fechaVencimientoIni;
+    }
+    if (fechaVencimientoFin !== null) {
+      fechaVencimientoFilter.$lte = fechaVencimientoFin;
+    }
+    baseWhere.fechaVencimiento = fechaVencimientoFilter;
+  }
+
+  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
+  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
+  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
+    const fechaCreacionFilter: any = {};
+    if (fechaCreacionIni !== null) {
+      fechaCreacionFilter.$gte = fechaCreacionIni;
+    }
+    if (fechaCreacionFin !== null) {
+      fechaCreacionFilter.$lte = fechaCreacionFin;
+    }
+    baseWhere.createdAt = fechaCreacionFilter;
+  }
+
+  if(req.query.id && !isNaN(Number(req.query.id))) {
+    baseWhere.id = Number(req.query.id);
+  }
+
+  if(req.query.conductorId && !isNaN(Number(req.query.conductorId))) {    
+    const conductor: Conductor = new Conductor();
+    conductor.id = Number(req.query.conductorId); 
+    baseWhere.conductor = conductor;
+  }
+
+  return baseWhere
 }
 
 export { sanitizeLicenciaInput, findAll, findOne, add, update, remove };

@@ -35,6 +35,8 @@ function sanitizeViajeInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
+    const baseWhere: any = buildBaseWhere(req);
+
     const result = await getInfiniteScroll<Viaje>({
       req,
       em,
@@ -47,6 +49,7 @@ async function findAll(req: Request, res: Response): Promise<void> {
         "lineasCarga",
         "observaciones",
       ], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
+      baseWhere
     });
 
     res.status(200).json(result);
@@ -362,4 +365,61 @@ async function viajeValidation(req: Request, res: Response): Promise<void> {
   }
 } 
 
+function buildBaseWhere(req: Request): any {
+  const baseWhere: any = {};
+  if (req.query.estado && typeof req.query.estado === 'string') {
+    const estado = req.query.estado.trim();
+    if (estado.length > 0) {
+      baseWhere.estado = estado;
+    }
+  }
+
+  if(req.query.idTren && !isNaN(Number(req.query.idTren))) {
+    baseWhere.idTren = Number(req.query.idTren);
+  }
+
+  if(req.query.idRecorrido && !isNaN(Number(req.query.idRecorrido))) {
+    baseWhere.idRecorrido = Number(req.query.idRecorrido);
+  }
+
+  if(req.query.idConductor && !isNaN(Number(req.query.idConductor))) {
+    baseWhere.idConductor = Number(req.query.idConductor);
+  }
+
+  if(req.query.id && !isNaN(Number(req.query.id))) {
+    baseWhere.id = Number(req.query.id);
+  }
+  
+  // Construir el filtro dinamico basando en los rangos de fechas: fechaCreacionIni y fechaCreacionFin
+  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
+  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
+  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
+    const fechaCreacionFilter: any = {};
+    if (fechaCreacionIni !== null) {
+      fechaCreacionFilter.$gte = fechaCreacionIni;
+    }
+    if (fechaCreacionFin !== null) {
+      fechaCreacionFilter.$lte = fechaCreacionFin;
+    }
+    baseWhere.createdAt = fechaCreacionFilter;
+  }
+
+  // Filtros para fechaIni y fechaFin
+  const fechaIni = req.query.fechaIni ? new Date(req.query.fechaIni as string) : null;
+  const fechaFin = req.query.fechaFin ? new Date(req.query.fechaFin as string) : null;
+  if (fechaIni !== null || fechaFin !== null) {
+    const fechaFilter: any = {};
+    if (fechaIni !== null) {
+      fechaFilter.$gte = fechaIni;
+    }
+    if (fechaFin !== null) {
+      fechaFilter.$lte = fechaFin;
+    }
+    baseWhere.fechaIni = fechaFilter;
+  }
+
+  return baseWhere;
+}
+
 export { sanitizeViajeInput, findAll, findOne, remove, add, update, viajeValidation }; // ADD y UPDATE
+

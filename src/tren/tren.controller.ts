@@ -32,19 +32,7 @@ function sanitizarTrenInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const baseWhere: any = {};
-    const filterColumn = req.query.filterColumn;
-    const filterValue = req.query.filterValue;
-
-    if (filterColumn && filterValue) {
-      const valueStr = filterValue.toString();
-      switch (filterColumn) {
-        case "color": baseWhere.color = valueStr; break;
-        case "modelo": baseWhere.modelo = valueStr; break;
-        case "estado": baseWhere.estadosTren = { nombre: valueStr }; break;
-        default: break;
-      }
-    }
+    const baseWhere: any = buildBaseWhere(req);
 
     const result = await getInfiniteScroll<Tren>({
       req,
@@ -142,6 +130,28 @@ async function remove(req: Request, res: Response): Promise<void> {
       .status(500)
       .json({ message: 'Error al eliminar el "Tren"', error: error.message });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: any = {};
+  const filterColumn = req.query.filterColumn;
+  const filterValue = req.query.filterValue;
+
+  if (filterColumn && filterValue) {
+    const valueStr = filterValue.toString();
+    switch (filterColumn) {
+      case "color": baseWhere.color = valueStr; break;
+      case "modelo": baseWhere.modelo = valueStr; break;
+      case "estado": baseWhere.estadosTren = { nombre: valueStr }; break;
+      default: break;
+    }
+  }
+
+  if(req.query.id && !isNaN(Number(req.query.id))) {
+    baseWhere.id = Number(req.query.id);
+  }
+
+  return baseWhere;
 }
 
 export { sanitizarTrenInput, findAll, findOne, add, update, remove };

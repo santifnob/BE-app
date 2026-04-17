@@ -29,12 +29,15 @@ function sanitizeEstadoInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
+    const baseWhere: any = buildBaseWhere(req);
+
     const result = await getInfiniteScroll<EstadoTren>({
       req,
       em,
       entity: EstadoTren,
       message: "Listado de estados de trenes:",
-      populate: ["tren"]
+      populate: ["tren"],
+      baseWhere
     });
 
     res.status(200).json(result);
@@ -142,6 +145,62 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: any = {};
+  if (req.query.estado && typeof req.query.estado === 'string') {
+    const estado = req.query.estado.trim();
+    if (estado.length > 0) {
+      baseWhere.estado = estado;
+    }
+  }
+
+  if(req.query.nombre && typeof req.query.nombre === 'string') {
+    const nombre = req.query.nombre.trim();
+    if(nombre.length > 0) {
+      baseWhere.nombre = { $like: `%${nombre}%` };
+    }
+  }
+
+  if(req.query.trenId && !isNaN(Number(req.query.trenId))) {
+    const tren = new Tren();
+    tren.id = Number(req.query.trenId);
+    baseWhere.tren = tren;
+  }
+
+  if(req.query.id && !isNaN(Number(req.query.id))) {
+    baseWhere.id = Number(req.query.id);
+  }
+  
+  // Construir el filtro dinamico basando en los rangos de fechas: fechaCreacionIni y fechaCreacionFin
+  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
+  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
+  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
+    const fechaCreacionFilter: any = {};
+    if (fechaCreacionIni !== null) {
+      fechaCreacionFilter.$gte = fechaCreacionIni;
+    }
+    if (fechaCreacionFin !== null) {
+      fechaCreacionFilter.$lte = fechaCreacionFin;
+    }
+    baseWhere.createdAt = fechaCreacionFilter;
+  }
+
+  const fechaVigenciaIni = req.query.fechaVigenciaIni ? new Date(req.query.fechaVigenciaIni as string) : null;
+  const fechaVigenciaFin = req.query.fechaVigenciaFin ? new Date(req.query.fechaVigenciaFin as string) : null;
+  if (fechaVigenciaIni !== null || fechaVigenciaFin !== null) {
+    const fechaVigenciaFilter: any = {};
+    if (fechaVigenciaIni !== null) {
+      fechaVigenciaFilter.$gte = fechaVigenciaIni;
+    }
+    if (fechaVigenciaFin !== null) {
+      fechaVigenciaFilter.$lte = fechaVigenciaFin;
+    }
+    baseWhere.fechaVigencia = fechaVigenciaFilter;
+  }
+
+  return baseWhere;
 }
 
 export { sanitizeEstadoInput, findAll, findOne, add, update, remove };

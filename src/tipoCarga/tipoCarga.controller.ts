@@ -27,11 +27,14 @@ function sanitizeTipoCargaInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
+    const baseWhere: any = buildBaseWhere(req);
+
     const result = await getInfiniteScroll<TipoCarga>({
       req,
       em,
       entity: TipoCarga,
       message: "Listado de tipos de carga:",
+      baseWhere
     });
 
     res.status(200).json(result);
@@ -138,6 +141,50 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: any = {};
+  if (req.query.estado && typeof req.query.estado === 'string') {
+    const estado = req.query.estado.trim();
+    if (estado.length > 0) {
+      baseWhere.estado = estado;
+    }
+  }
+
+  if(req.query.name && typeof req.query.name === 'string') {
+    const name = req.query.name.trim();
+    if(name.length > 0) {
+      baseWhere.name = { $like: `%${name}%` };
+    }
+  }
+
+  if(req.query.desc && typeof req.query.desc === 'string') {
+    const desc = req.query.desc.trim();
+    if(desc.length > 0) {
+      baseWhere.desc = { $like: `%${desc}%` };
+    }
+  }
+
+  if(req.query.id && !isNaN(Number(req.query.id))) {
+    baseWhere.id = Number(req.query.id);
+  }
+  
+  // Construir el filtro dinamico basando en los rangos de fechas: fechaCreacionIni y fechaCreacionFin
+  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
+  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
+  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
+    const fechaCreacionFilter: any = {};
+    if (fechaCreacionIni !== null) {
+      fechaCreacionFilter.$gte = fechaCreacionIni;
+    }
+    if (fechaCreacionFin !== null) {
+      fechaCreacionFilter.$lte = fechaCreacionFin;
+    }
+    baseWhere.createdAt = fechaCreacionFilter;
+  }
+
+  return baseWhere;
 }
 
 export { findAll, findOne, add, update, remove, sanitizeTipoCargaInput };

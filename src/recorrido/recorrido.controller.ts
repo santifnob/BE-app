@@ -27,66 +27,7 @@ function sanitizeRecorridoInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const baseWhere: any = {};
-
-    // Filtro: ciudadSalida (búsqueda parcial con $like)
-    if (req.query.ciudadSalida && typeof req.query.ciudadSalida === 'string') {
-      const ciudadSalida = req.query.ciudadSalida.trim();
-      if (ciudadSalida.length > 0) {
-        baseWhere.ciudadSalida = { $like: `%${ciudadSalida}%` };
-      }
-    }
-
-    // Filtro: ciudadLlegada (búsqueda parcial con $like)
-    if (req.query.ciudadLlegada && typeof req.query.ciudadLlegada === 'string') {
-      const ciudadLlegada = req.query.ciudadLlegada.trim();
-      if (ciudadLlegada.length > 0) {
-        baseWhere.ciudadLlegada = { $like: `%${ciudadLlegada}%` };
-      }
-    }
-
-    // Filtro: estado (búsqueda exacta)
-    if (req.query.estado && typeof req.query.estado === 'string') {
-      const estado = req.query.estado.trim();
-      if (estado.length > 0) {
-        baseWhere.estado = estado;
-      }
-    }
-
-    // Filtro: totalKm (rango con minKm y/o maxKm)
-    const minKm = req.query.minKm ? Number(req.query.minKm) : null;
-    const maxKm = req.query.maxKm ? Number(req.query.maxKm) : null;
-
-    // Validar que ambos sean números válidos
-    if (minKm !== null && !Number.isFinite(minKm)) {
-      res.status(400).json({
-        message: "El parámetro 'minKm' debe ser un número válido",
-      });
-      return;
-    }
-
-    if (maxKm !== null && !Number.isFinite(maxKm)) {
-      res.status(400).json({
-        message: "El parámetro 'maxKm' debe ser un número válido",
-      });
-      return;
-    }
-
-    // Validar que minKm no sea mayor que maxKm
-    if (minKm !== null && maxKm !== null && minKm > maxKm) {
-      res.status(400).json({
-        message: "El parámetro 'minKm' no puede ser mayor que 'maxKm'",
-      });
-      return;
-    }
-
-    // Construir filtro de rango para totalKm
-    if (minKm !== null || maxKm !== null) {
-      const kmFilter: any = {};
-      if (minKm !== null) kmFilter.$gte = minKm;
-      if (maxKm !== null) kmFilter.$lte = maxKm;
-      baseWhere.totalKm = kmFilter;
-    }
+    const baseWhere: any = buildBaseWhere(req);
 
     const result = await getInfiniteScroll<Recorrido>({
       req,
@@ -181,6 +122,56 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: any = {};
+
+  // Filtro: ciudadSalida (búsqueda parcial con $like)
+  if (req.query.ciudadSalida && typeof req.query.ciudadSalida === 'string') {
+    const ciudadSalida = req.query.ciudadSalida.trim();
+    if (ciudadSalida.length > 0) {
+      baseWhere.ciudadSalida = { $like: `%${ciudadSalida}%` };
+    }
+  }
+
+  // Filtro: ciudadLlegada (búsqueda parcial con $like)
+  if (req.query.ciudadLlegada && typeof req.query.ciudadLlegada === 'string') {
+    const ciudadLlegada = req.query.ciudadLlegada.trim();
+    if (ciudadLlegada.length > 0) {
+      baseWhere.ciudadLlegada = { $like: `%${ciudadLlegada}%` };
+    }
+  }
+
+  // Filtro: estado (búsqueda exacta)
+  if (req.query.estado && typeof req.query.estado === 'string') {
+    const estado = req.query.estado.trim();
+    if (estado.length > 0) {
+      baseWhere.estado = estado;
+    }
+  }
+
+  if(req.query.id && !isNaN(Number(req.query.id))) {
+    baseWhere.id = Number(req.query.id);
+  }
+
+  // Filtro: totalKm (rango con minKm y/o maxKm)
+  const minKm = req.query.minKm ? Number(req.query.minKm) : null;
+  const maxKm = req.query.maxKm ? Number(req.query.maxKm) : null;
+
+  // Construir filtro de rango para totalKm
+  if (minKm !== null && Number.isFinite(minKm) && maxKm !== null && Number.isFinite(maxKm) && minKm <= maxKm) {
+    const kmFilter: any = {};
+    if (minKm !== null) kmFilter.$gte = minKm;
+    if (maxKm !== null) kmFilter.$lte = maxKm;
+    baseWhere.totalKm = kmFilter;
+  } else if (minKm !== null && Number.isFinite(minKm)) {
+    baseWhere.totalKm = { $gte: minKm };
+  } else if (maxKm !== null && Number.isFinite(maxKm)) {
+    baseWhere.totalKm = { $lte: maxKm };
+  }
+
+  return baseWhere;
 }
 
 export { sanitizeRecorridoInput, findAll, findOne, add, update, remove };

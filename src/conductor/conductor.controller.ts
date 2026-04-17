@@ -28,20 +28,7 @@ function sanitizeConductorInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const baseWhere: any = {};
-    const filterColumn = req.query.filterColumn;
-    const filterValue = req.query.filterValue;
-
-    if (filterColumn && filterValue) {
-      const valueStr = filterValue.toString();
-      switch (filterColumn) {
-        case "nombre": baseWhere.nombre = filterValue.toString(); break;
-        case "apellido": baseWhere.apellido = filterValue.toString(); break; 
-        case "email": baseWhere.email = filterValue.toString(); break;
-        case "estado": baseWhere.estado = filterValue.toString(); break;
-        default: break;
-      }
-    }
+    const baseWhere: any = buildBaseWhere(req);
 
     const result = await getInfiniteScroll<Conductor>({
       req,
@@ -164,6 +151,59 @@ export async function findOneByMail(
   } catch (error: any) {
     return undefined;
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: any = {};
+  if (req.query.estado && typeof req.query.estado === 'string') {
+    const estado = req.query.estado.trim();
+    if (estado.length > 0) {
+      baseWhere.estado = estado;
+    }
+  }
+
+  if(req.query.nombre && typeof req.query.nombre === 'string') {
+    const nombre = req.query.nombre.trim();
+    if(nombre.length > 0) {
+      baseWhere.nombre = { $like: `%${nombre}%` };
+    }
+  }
+
+  if(req.query.apellido && typeof req.query.apellido === 'string') {
+    const apellido = req.query.apellido.trim();
+    if(apellido.length > 0) {
+      baseWhere.apellido = { $like: `%${apellido}%` };
+    }
+  }
+  
+  if(req.query.email && typeof req.query.email === 'string') {
+    const email = req.query.email.trim();
+    if(email.length > 0) {
+      baseWhere.email = { $like: `%${email}%` };
+    }
+  }
+
+  if(req.query.id && !isNaN(Number(req.query.id))) {
+    baseWhere.id = Number(req.query.id);
+  }
+  
+  // Constuir el filtro dinamico basando en los rangos de fechas: fechaCreacionIni y fechaCreacionFin
+  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
+  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
+  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
+    const fechaCreacionFilter: any = {};
+    if (fechaCreacionIni !== null) {
+      fechaCreacionFilter.$gte = fechaCreacionIni;
+    }
+    if (fechaCreacionFin !== null) {
+      fechaCreacionFilter.$lte = fechaCreacionFin;
+    }
+    baseWhere.createdAt = fechaCreacionFilter;
+  }
+
+
+  return baseWhere;
+
 }
 
 export { sanitizeConductorInput, findAll, findOne, add, update, remove };
