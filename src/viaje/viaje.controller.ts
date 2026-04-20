@@ -6,6 +6,7 @@ import { Recorrido } from "../recorrido/recorrido.entity.js";
 import { Conductor } from "../conductor/conductor.entity.js";
 import { getInfiniteScroll } from "../shared/utils/pagination.js";
 import { EstadoTren } from "../estadoTren/estadoTren.entity.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -366,63 +367,13 @@ async function viajeValidation(req: Request, res: Response): Promise<void> {
 } 
 
 function buildBaseWhere(req: Request): any {
-  const baseWhere: any = {};
-  if (req.query.estado && typeof req.query.estado === 'string') {
-    const estado = req.query.estado.trim();
-    if (estado.length > 0) {
-      baseWhere.estado = estado;
-    }
-  }
+  const baseWhere: BaseWhere = new BaseWhere();
 
-  if(req.query.trenId && !isNaN(Number(req.query.trenId))) {
-    const tren = new Tren();
-    tren.id = Number(req.query.trenId);
-    baseWhere.tren = tren;
-  }
-
-  if(req.query.recorridoId && !isNaN(Number(req.query.recorridoId))) {
-    const recorrido = new Recorrido();
-    recorrido.id = Number(req.query.recorridoId);
-    baseWhere.recorrido = recorrido;
-  }
-
-  if(req.query.conductorId && !isNaN(Number(req.query.conductorId))) {
-    const conductor = new Conductor();
-    conductor.id = Number(req.query.conductorId);
-    baseWhere.conductor = conductor;
-  }
-
-  if(req.query.id && !isNaN(Number(req.query.id))) {
-    baseWhere.id = Number(req.query.id);
-  }
-  
-  // Construir el filtro dinamico basando en los rangos de fechas: fechaCreacionIni y fechaCreacionFin
-  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
-  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
-  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
-    const fechaCreacionFilter: any = {};
-    if (fechaCreacionIni !== null) {
-      fechaCreacionFilter.$gte = fechaCreacionIni;
-    }
-    if (fechaCreacionFin !== null) {
-      fechaCreacionFilter.$lte = fechaCreacionFin;
-    }
-    baseWhere.createdAt = fechaCreacionFilter;
-  }
-
-  // Filtros para fechaIni y fechaFin
-  const fechaIni = req.query.fechaIni ? new Date(req.query.fechaIni as string) : null;
-  const fechaFin = req.query.fechaFin ? new Date(req.query.fechaFin as string) : null;
-  if (fechaIni !== null || fechaFin !== null) {
-    const fechaFilter: any = {};
-    if (fechaIni !== null) {
-      fechaFilter.$gte = fechaIni;
-    }
-    if (fechaFin !== null) {
-      fechaFilter.$lte = fechaFin;
-    }
-    baseWhere.fechaIni = fechaFilter;
-  }
+  baseWhere.setForeignKeyFilter("tren", req.query.trenId as string | undefined);
+  baseWhere.setForeignKeyFilter("recorrido", req.query.recorridoId as string | undefined);
+  baseWhere.setForeignKeyFilter("conductor", req.query.conductorId as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setDateRangeFilter("fechaIni", req.query.fechaIni as string | undefined, req.query.fechaFin as string | undefined);
 
   return baseWhere;
 }

@@ -4,6 +4,7 @@ import { EstadoTren } from "../estadoTren/estadoTren.entity.js";
 import { orm } from "../shared/db/orm.js";
 import { getInfiniteScroll } from "../shared/utils/pagination.js";
 import { SqlEntityManager } from "@mikro-orm/mysql";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -135,26 +136,13 @@ async function remove(req: Request, res: Response): Promise<void> {
 }
 
 function buildBaseWhere(req: Request): any {
-  const baseWhere: any = {};
+  const baseWhere: BaseWhere = new BaseWhere();
 
-  if (req.query.color && typeof req.query.color === 'string') {
-    const color = req.query.color.trim();
-    if (color.length > 0) {
-      baseWhere.color = { $like: `%${color}%` };
-    }
-  }
+  baseWhere.setLikeFilter("color", req.query.color as string | undefined);
+  baseWhere.setLikeFilter("modelo", req.query.modelo as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
 
-  if (req.query.modelo && typeof req.query.modelo === 'string') {
-    const modelo = req.query.modelo.trim();
-    if (modelo.length > 0) {
-      baseWhere.modelo = { $like: `%${modelo}%` };
-    }
-  }
-
-  if (req.query.id && !isNaN(Number(req.query.id))) {
-    baseWhere.id = Number(req.query.id);
-  }
-
+  // Logica más compleja para filtrar por estado del tren
   if (req.query.estadoTren && typeof req.query.estadoTren === 'string') {
     const estado = req.query.estadoTren.trim();
 
@@ -172,19 +160,7 @@ function buildBaseWhere(req: Request): any {
     }
   }
 
-  // Construir el filtro dinámico basado en los rangos de fechas: fechaCreacionIni y fechaCreacionFin
-  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
-  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
-  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
-    const fechaCreacionFilter: any = {};
-    if (fechaCreacionIni !== null) {
-      fechaCreacionFilter.$gte = fechaCreacionIni;
-    }
-    if (fechaCreacionFin !== null) {
-      fechaCreacionFilter.$lte = fechaCreacionFin;
-    }
-    baseWhere.createdAt = fechaCreacionFilter;
-  }
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
 
   return baseWhere;
 }

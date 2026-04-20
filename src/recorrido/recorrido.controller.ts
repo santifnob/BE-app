@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { Recorrido } from "./recorrido.entity.js";
 import { orm } from "../shared/db/orm.js";
 import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -27,14 +28,14 @@ function sanitizeRecorridoInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const baseWhere: any = buildBaseWhere(req);
+    const baseWhere = buildBaseWhere(req);
 
     const result = await getInfiniteScroll<Recorrido>({
       req,
       em,
       entity: Recorrido,
       message: "Listado de los recorridos: ",
-      baseWhere,
+      baseWhere: baseWhere as any,
     });
 
     res.status(200).json({
@@ -125,51 +126,17 @@ async function remove(req: Request, res: Response): Promise<void> {
 }
 
 function buildBaseWhere(req: Request): any {
-  const baseWhere: any = {};
+  const baseWhere: BaseWhere = new BaseWhere();
 
-  // Filtro: ciudadSalida (búsqueda parcial con $like)
-  if (req.query.ciudadSalida && typeof req.query.ciudadSalida === 'string') {
-    const ciudadSalida = req.query.ciudadSalida.trim();
-    if (ciudadSalida.length > 0) {
-      baseWhere.ciudadSalida = { $like: `%${ciudadSalida}%` };
-    }
-  }
+  baseWhere.setLikeFilter("ciudadSalida", req.query.ciudadSalida as string | undefined);
 
-  // Filtro: ciudadLlegada (búsqueda parcial con $like)
-  if (req.query.ciudadLlegada && typeof req.query.ciudadLlegada === 'string') {
-    const ciudadLlegada = req.query.ciudadLlegada.trim();
-    if (ciudadLlegada.length > 0) {
-      baseWhere.ciudadLlegada = { $like: `%${ciudadLlegada}%` };
-    }
-  }
+  baseWhere.setLikeFilter("ciudadLlegada", req.query.ciudadLlegada as string | undefined);
 
-  // Filtro: estado (búsqueda exacta)
-  if (req.query.estado && typeof req.query.estado === 'string') {
-    const estado = req.query.estado.trim();
-    if (estado.length > 0) {
-      baseWhere.estado = estado;
-    }
-  }
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
 
-  if(req.query.id && !isNaN(Number(req.query.id))) {
-    baseWhere.id = Number(req.query.id);
-  }
+  baseWhere.setIdFilter(req.query.id as string | undefined);
 
-  // Filtro: totalKm (rango con minKm y/o maxKm)
-  const minKm = req.query.minKm ? Number(req.query.minKm) : null;
-  const maxKm = req.query.maxKm ? Number(req.query.maxKm) : null;
-
-  // Construir filtro de rango para totalKm
-  if (minKm !== null && Number.isFinite(minKm) && maxKm !== null && Number.isFinite(maxKm) && minKm <= maxKm) {
-    const kmFilter: any = {};
-    if (minKm !== null) kmFilter.$gte = minKm;
-    if (maxKm !== null) kmFilter.$lte = maxKm;
-    baseWhere.totalKm = kmFilter;
-  } else if (minKm !== null && Number.isFinite(minKm)) {
-    baseWhere.totalKm = { $gte: minKm };
-  } else if (maxKm !== null && Number.isFinite(maxKm)) {
-    baseWhere.totalKm = { $lte: maxKm };
-  }
+  baseWhere.setRangeNumberFilter("totalKm", req.query.minKm, req.query.maxKm);
 
   return baseWhere;
 }

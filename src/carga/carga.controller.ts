@@ -3,6 +3,7 @@ import { orm } from "../shared/db/orm.js";
 import { Carga } from "./carga.entity.js";
 import { TipoCarga } from "../tipoCarga/tipoCarga.entity.js";
 import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -180,52 +181,13 @@ async function remove(req: Request, res: Response): Promise<void> {
 }
 
 function buildBaseWhere(req: Request): any {
-  const baseWhere: any = {};
-  if (req.query.estado && typeof req.query.estado === 'string') {
-    const estado = req.query.estado.trim();
-    if (estado.length > 0) {
-      baseWhere.estado = estado;
-    }
-  }
+  const baseWhere: BaseWhere = new BaseWhere();
 
-  if(req.query.name && typeof req.query.name === 'string') {
-    const name = req.query.name.trim();
-    if(name.length > 0) {
-      baseWhere.name = { $like: `%${name}%` };
-    }
-  }
-
-  if(req.query.id && !isNaN(Number(req.query.id))) {
-    baseWhere.id = Number(req.query.id);
-  }
-  
-  // Construir el filtro dinamico basando en los rangos de fechas: fechaCreacionIni y fechaCreacionFin
-  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
-  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
-  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
-    const fechaCreacionFilter: any = {};
-    if (fechaCreacionIni !== null) {
-      fechaCreacionFilter.$gte = fechaCreacionIni;
-    }
-    if (fechaCreacionFin !== null) {
-      fechaCreacionFilter.$lte = fechaCreacionFin;
-    }
-    baseWhere.createdAt = fechaCreacionFilter;
-  }
-
-  
-  const minPrecio = req.query.minPrecio ? Number(req.query.minPrecio) : null;
-  const maxPrecio = req.query.maxPrecio ? Number(req.query.maxPrecio) : null;
-  if (minPrecio !== null || maxPrecio !== null) {
-    const precioFilter: any = {};
-    if (minPrecio !== null) {
-      precioFilter.$gte = minPrecio;
-    }
-    if (maxPrecio !== null) {
-      precioFilter.$lte = maxPrecio;
-    }
-    baseWhere.precio = precioFilter;
-  }
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+  baseWhere.setLikeFilter("name", req.query.name as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+  baseWhere.setRangeNumberFilter("precio", req.query.minPrecio as any, req.query.maxPrecio as any);
 
   return baseWhere;
 }

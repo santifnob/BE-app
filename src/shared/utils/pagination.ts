@@ -50,7 +50,11 @@ export async function getInfiniteScroll<T extends { id?: any }>(
 
   // 3. Construcción dinámica del Where
   // Combinamos los filtros base que pases con la lógica del cursor
-  const safeBaseWhere = (baseWhere && typeof baseWhere === 'object') ? baseWhere : {};
+  // Convertir BaseWhere instance a plain object si es necesario
+  let safeBaseWhere: any = (baseWhere && typeof baseWhere === 'object') ? baseWhere : {};
+  if (safeBaseWhere && typeof safeBaseWhere.toObject === 'function') {
+    safeBaseWhere = safeBaseWhere.toObject();
+  }
   const where: FilterQuery<T> = cursor
     ? { $and: [safeBaseWhere, { id: { $lt: cursor } }] } as FilterQuery<T>
     : safeBaseWhere;

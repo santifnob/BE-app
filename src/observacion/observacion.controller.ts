@@ -4,6 +4,7 @@ import { CategoriaDenuncia } from "../categoriaDenuncia/categoriaDenuncia.entity
 import { orm } from "../shared/db/orm.js";
 import { Viaje } from "../viaje/viaje.entity.js";
 import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -195,51 +196,14 @@ async function remove(req: Request, res: Response): Promise<void> {
 }
 
 function buildBaseWhere(req: Request): any {
-  const baseWhere: any = {};
-  if (req.query.estado && typeof req.query.estado === 'string') {
-    const estado = req.query.estado.trim();
-    if (estado.length > 0) {
-      baseWhere.estado = estado;
-    }
-  }
+  const baseWhere: BaseWhere = new BaseWhere();
 
-  if(req.query.observaciones && typeof req.query.observaciones === 'string') {
-    const observaciones = req.query.observaciones.trim();
-    if(observaciones.length > 0) {
-      baseWhere.observaciones = { $like: `%${observaciones}%` };
-    }
-  }
-
-  if(req.query.categoriaDenunciaId && !isNaN(Number(req.query.categoriaDenunciaId))) {
-    const categoriaDenuncia = new CategoriaDenuncia();
-    categoriaDenuncia.id = Number(req.query.categoriaDenunciaId);
-    baseWhere.categoriaDenuncia = categoriaDenuncia;
-  }
-
-  if(req.query.viajeId && !isNaN(Number(req.query.viajeId))) {
-    const viaje = new Viaje();
-    viaje.id = Number(req.query.viajeId);
-    baseWhere.viaje = viaje;
-  }
-
-  if(req.query.id && !isNaN(Number(req.query.id))) {
-    baseWhere.id = Number(req.query.id);
-  }
-  
-  // Construir el filtro dinamico basando en los rangos de fechas: fechaCreacionIni y fechaCreacionFin
-  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
-  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
-  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
-    const fechaCreacionFilter: any = {};
-    if (fechaCreacionIni !== null) {
-      fechaCreacionFilter.$gte = fechaCreacionIni;
-    }
-    if (fechaCreacionFin !== null) {
-      fechaCreacionFilter.$lte = fechaCreacionFin;
-    }
-    baseWhere.createdAt = fechaCreacionFilter;
-  }
-
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+  baseWhere.setLikeFilter("observaciones", req.query.observaciones as string | undefined);
+  baseWhere.setForeignKeyFilter("categoriaDenuncia", req.query.categoriaDenunciaId as string | undefined);
+  baseWhere.setForeignKeyFilter("viaje", req.query.viajeId as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
 
   return baseWhere;
 }
