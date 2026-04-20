@@ -1,7 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { Tren } from "./tren.entity.js";
+import { EstadoTren } from "../estadoTren/estadoTren.entity.js";
 import { orm } from "../shared/db/orm.js";
 import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { SqlEntityManager } from "@mikro-orm/mysql";
 
 const em = orm.em;
 
@@ -134,24 +136,76 @@ async function remove(req: Request, res: Response): Promise<void> {
 
 function buildBaseWhere(req: Request): any {
   const baseWhere: any = {};
-  const filterColumn = req.query.filterColumn;
-  const filterValue = req.query.filterValue;
 
-  if (filterColumn && filterValue) {
-    const valueStr = filterValue.toString();
-    switch (filterColumn) {
-      case "color": baseWhere.color = valueStr; break;
-      case "modelo": baseWhere.modelo = valueStr; break;
-      case "estado": baseWhere.estadosTren = { nombre: valueStr }; break;
-      default: break;
+  if (req.query.color && typeof req.query.color === 'string') {
+    const color = req.query.color.trim();
+    if (color.length > 0) {
+      baseWhere.color = { $like: `%${color}%` };
     }
   }
 
-  if(req.query.id && !isNaN(Number(req.query.id))) {
+  if (req.query.modelo && typeof req.query.modelo === 'string') {
+    const modelo = req.query.modelo.trim();
+    if (modelo.length > 0) {
+      baseWhere.modelo = { $like: `%${modelo}%` };
+    }
+  }
+
+  if (req.query.id && !isNaN(Number(req.query.id))) {
     baseWhere.id = Number(req.query.id);
   }
 
+  if (req.query.estadoTren && typeof req.query.estadoTren === 'string') {
+    const estado = req.query.estadoTren.trim();
+
+    if (estado.length > 0) {
+      const subQuery = buildEstadoTrenFilter(estado); // convierte a SQL usable
+      if (baseWhere.id !== undefined) {
+        baseWhere.$and = [
+          { id: baseWhere.id },
+          { id: { $in: subQuery } }
+        ];
+        delete baseWhere.id;
+      } else {
+        baseWhere.id = { $in: subQuery };
+      }
+    }
+  }
+
+  // Construir el filtro dinámico basado en los rangos de fechas: fechaCreacionIni y fechaCreacionFin
+  const fechaCreacionIni = req.query.fechaCreacionIni ? new Date(req.query.fechaCreacionIni as string) : null;
+  const fechaCreacionFin = req.query.fechaCreacionFin ? new Date(req.query.fechaCreacionFin as string) : null;
+  if (fechaCreacionIni !== null || fechaCreacionFin !== null) {
+    const fechaCreacionFilter: any = {};
+    if (fechaCreacionIni !== null) {
+      fechaCreacionFilter.$gte = fechaCreacionIni;
+    }
+    if (fechaCreacionFin !== null) {
+      fechaCreacionFilter.$lte = fechaCreacionFin;
+    }
+    baseWhere.createdAt = fechaCreacionFilter;
+  }
+
   return baseWhere;
+}
+
+function buildEstadoTrenFilter(estado: string) {
+  const emSql = em as SqlEntityManager // Permite utilizar el queryBuilder
+
+  const subQb = emSql.qb(EstadoTren, 'et')
+    .select('et.tren')
+    .where({ nombre: estado })
+    .andWhere({ fechaVigencia: { $lt: new Date() } })
+    .andWhere(`
+      et.fecha_vigencia = (
+        SELECT MAX(et2.fecha_vigencia)
+        FROM estado_tren et2
+        WHERE et2.tren_id = et.tren_id
+        AND et2.fecha_vigencia < NOW()
+      )
+    `)
+
+  return subQb.getKnexQuery()
 }
 
 export { sanitizarTrenInput, findAll, findOne, add, update, remove };
