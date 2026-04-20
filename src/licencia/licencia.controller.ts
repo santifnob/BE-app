@@ -186,6 +186,17 @@ function buildBaseWhere(req: Request): any {
   baseWhere.setDateRangeFilter("fechaVencimiento", req.query.fechaVencimientoIni as any, req.query.fechaVencimientoFin as any);
   baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
 
+  // Special handling for conductorNombreYApellido - search in both nombre and apellido
+  if (req.query.conductorNombreYApellido && typeof req.query.conductorNombreYApellido === 'string') {
+    const value = req.query.conductorNombreYApellido.trim();
+    if (value) {
+      baseWhere.$or = [
+        { conductor: { nombre: { $like: `%${value}%` } } },
+        { conductor: { apellido: { $like: `%${value}%` } } }
+      ];
+    }
+  }
+
   return baseWhere;
 }
 

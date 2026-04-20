@@ -31,8 +31,6 @@ export class BaseWhere {
     const hasMin = minValue !== undefined && minValue !== null && Number.isFinite(Number(minValue));
     const hasMax = maxValue !== undefined && maxValue !== null && Number.isFinite(Number(maxValue));
 
-    console.log(`Setting range filter for ${attribute}: minValue=${minValue}, maxValue=${maxValue}, hasMin=${hasMin}, hasMax=${hasMax}`);
-
     if (hasMin && hasMax && Number(minValue) <= Number(maxValue)) {
       this[attribute] = { $gte: Number(minValue), $lte: Number(maxValue) };
     } else if (hasMin) {
@@ -59,6 +57,17 @@ export class BaseWhere {
       this[attribute] = { $lte: new Date(endDate) };
     }
   }
+
+  // filtrar por el atributo de una entidad relacionada (ej: conductor.nombre)
+  setRelatedAttributeLikeFilter(relatedEntityName: string, attribute: string, value: string | undefined): void {
+    if(value && typeof value === 'string') {
+      const trimmedValue = value.trim();
+      if(trimmedValue) {
+        this[relatedEntityName] = { [attribute]: { $like: `%${trimmedValue}%` } };
+      }
+    }
+  }
+
 
   toObject(): Record<string, any> {
     const obj: Record<string, any> = {};

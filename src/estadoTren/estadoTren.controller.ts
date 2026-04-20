@@ -157,6 +157,7 @@ function buildBaseWhere(req: Request): any {
   baseWhere.setIdFilter(req.query.id as string | undefined);
   baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
   baseWhere.setDateRangeFilter("fechaVigencia", req.query.fechaVigenciaIni as any, req.query.fechaVigenciaFin as any);
+  baseWhere.setRelatedAttributeLikeFilter("tren", "modelo", req.query.modeloTren as string | undefined);
 
   return baseWhere;
 }

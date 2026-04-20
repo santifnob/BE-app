@@ -188,6 +188,7 @@ function buildBaseWhere(req: Request): any {
   baseWhere.setIdFilter(req.query.id as string | undefined);
   baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
   baseWhere.setRangeNumberFilter("precio", req.query.minPrecio as any, req.query.maxPrecio as any);
+  baseWhere.setRelatedAttributeLikeFilter("tipoCarga", "name", req.query.nombreTipoCarga as string | undefined);
 
   return baseWhere;
 }

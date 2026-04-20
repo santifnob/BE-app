@@ -170,6 +170,7 @@ function buildBaseWhere(req: Request): any {
   baseWhere.setIdFilter(req.query.id as string | undefined);
   baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
   baseWhere.setRangeNumberFilter("cantidadVagon", req.query.minCantidadVagon as any, req.query.maxCantidadVagon as any);
+  baseWhere.setRelatedAttributeLikeFilter("carga", "name", req.query.nombreCarga as string | undefined);
 
   return baseWhere;
 }

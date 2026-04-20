@@ -374,6 +374,21 @@ function buildBaseWhere(req: Request): any {
   baseWhere.setForeignKeyFilter("conductor", req.query.conductorId as string | undefined);
   baseWhere.setIdFilter(req.query.id as string | undefined);
   baseWhere.setDateRangeFilter("fechaIni", req.query.fechaIni as string | undefined, req.query.fechaFin as string | undefined);
+  baseWhere.setRelatedAttributeLikeFilter("tren", "modelo", req.query.trenModelo as string | undefined);
+  baseWhere.setRelatedAttributeLikeFilter("tren", "color", req.query.trenColor as string | undefined);
+  baseWhere.setRelatedAttributeLikeFilter("recorrido", "ciudadSalida", req.query.recorridoCiudadSalida as string | undefined);
+  baseWhere.setRelatedAttributeLikeFilter("recorrido", "ciudadLlegada", req.query.recorridoCiudadLlegada as string | undefined);
+
+  // Special handling for conductorNombreYApellido - search in both nombre and apellido
+  if (req.query.conductorNombreYApellido && typeof req.query.conductorNombreYApellido === 'string') {
+    const value = req.query.conductorNombreYApellido.trim();
+    if (value) {
+      baseWhere.$or = [
+        { conductor: { nombre: { $like: `%${value}%` } } },
+        { conductor: { apellido: { $like: `%${value}%` } } }
+      ];
+    }
+  }
 
   return baseWhere;
 }

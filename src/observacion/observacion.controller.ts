@@ -28,36 +28,6 @@ function sanitizeObservacionInput(
   next();
 }
 
-// async function findAll(req: Request, res: Response): Promise<void> {
-//   try {
-//     const limit = Number(req.query.limit) || 10;
-//     const cursor = req.query.cursor ? Number(req.query.cursor) : null;
-
-//     const where = cursor ? { id: { $lt: cursor } } : {};
-
-//     let observaciones = await em.find(Observacion, where, {
-//       populate: ["viaje", "categoriaDenuncia", "viaje.recorrido"],
-//       orderBy: { id: "desc" },
-//       limit: limit + 1,
-//     });
-
-//     const hasNextPage = observaciones.length > limit;
-//     observaciones = observaciones.slice(0, limit);
-
-//     res.status(200).json({
-//       message: "Listado de observaciones",
-//       items: observaciones,
-//       nextCursor: hasNextPage ? observaciones.at(-1)!.id : null,
-//       hasNextPage,
-//     });
-//   } catch (error: any) {
-//     res.status(500).json({
-//       message: "Error al obtener el listado de observaciones",
-//       error: error.message,
-//     });
-//   }
-// }
-
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
     const baseWhere: any = buildBaseWhere(req);
@@ -204,6 +174,7 @@ function buildBaseWhere(req: Request): any {
   baseWhere.setForeignKeyFilter("viaje", req.query.viajeId as string | undefined);
   baseWhere.setIdFilter(req.query.id as string | undefined);
   baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+  baseWhere.setRelatedAttributeLikeFilter("categoriaDenuncia", "titulo", req.query.tituloCategoria as string | undefined);
 
   return baseWhere;
 }
