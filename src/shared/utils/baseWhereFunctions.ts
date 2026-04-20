@@ -68,6 +68,45 @@ export class BaseWhere {
     }
   }
 
+  // filtrar por estados inferidos del viaje
+  setInferredStatusFilter(estadoInferido: string | undefined): void {
+    if (!estadoInferido || typeof estadoInferido !== 'string') {
+      return;
+    }
+
+    const now = new Date();
+
+    switch (estadoInferido.trim()) {
+      case 'Cancelado/Suspendido':
+        this.estado = 'Inactivo';
+        break;
+      case 'Rechazado':
+        this.estado = 'Rechazado';
+        break;
+      case 'Viaje no aceptado':
+        this.estado = 'Pendiente';
+        this.fechaIni = { $lt: now };
+        break;
+      case 'Finalizado':
+        this.estado = 'Activo';
+        this.fechaFin = { $lt: now };
+        break;
+      case 'Programado':
+        this.estado = 'Activo';
+        this.fechaIni = { $gt: now };
+        break;
+      case 'En curso':
+        this.estado = 'Activo';
+        this.fechaIni = { $lte: now };
+        this.fechaFin = { $gte: now };
+        break;
+      default:
+      
+        this.estado = estadoInferido;
+        break;
+    }
+  }
+
 
   toObject(): Record<string, any> {
     const obj: Record<string, any> = {};

@@ -10,6 +10,35 @@ import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
+function getEstadoInferido(viaje: Viaje): string {
+  const now = new Date();
+
+  if (viaje.estado === "Inactivo") {
+    return "Cancelado/Suspendido";
+  }
+
+  if (viaje.estado === "Rechazado") {
+    return "Rechazado";
+  }
+
+  if (viaje.estado === "Pendiente" && viaje.fechaIni < now) {
+    return "Viaje no aceptado";
+  }
+
+  if (viaje.estado === "Activo") {
+    if (viaje.fechaFin < now) {
+      return "Finalizado";
+    } else if (viaje.fechaIni > now) {
+      return "Programado";
+    } else {
+      return "En curso";
+    }
+  }
+
+  // Fallback - shouldn't happen with valid data
+  return viaje.estado;
+}
+
 function sanitizeViajeInput(
   req: Request,
   res: Response,
@@ -53,7 +82,16 @@ async function findAll(req: Request, res: Response): Promise<void> {
       baseWhere
     });
 
-    res.status(200).json(result);
+    // Add computed status to each viaje
+    const viajesWithComputedStatus = {
+      ...result,
+      items: result.items.map((viaje: Viaje) => ({
+        ...viaje,
+        estadoInferido: getEstadoInferido(viaje)
+      }))
+    };
+
+    res.status(200).json(viajesWithComputedStatus);
   } catch (error: any) {
     res.status(500).json({
       message: "Error al obtener el listado de viajes",
@@ -374,6 +412,7 @@ function buildBaseWhere(req: Request): any {
   baseWhere.setForeignKeyFilter("conductor", req.query.conductorId as string | undefined);
   baseWhere.setIdFilter(req.query.id as string | undefined);
   baseWhere.setDateRangeFilter("fechaIni", req.query.fechaIni as string | undefined, req.query.fechaFin as string | undefined);
+  baseWhere.setInferredStatusFilter(req.query.estado as string | undefined);
   baseWhere.setRelatedAttributeLikeFilter("tren", "modelo", req.query.trenModelo as string | undefined);
   baseWhere.setRelatedAttributeLikeFilter("tren", "color", req.query.trenColor as string | undefined);
   baseWhere.setRelatedAttributeLikeFilter("recorrido", "ciudadSalida", req.query.recorridoCiudadSalida as string | undefined);
