@@ -1,0 +1,3 @@
+### Get Analytics Overview
+GET http://localhost:3000/api/analytics/fleet-stats
+Content-Type: application/json

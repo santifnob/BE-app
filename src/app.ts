@@ -17,6 +17,7 @@ import { estadoTrenRouter } from "./estadoTren/estadoTren.routes.js";
 import { catRouter } from "./categoriaDenuncia/categoriaDenuncia.routes.js";
 import { observacionRouter } from "./observacion/observacion.routes.js";
 import { lineaCargaRouter } from "./lineaCarga/lineaCarga.routes.js";
+import { analyticsRouter } from "./analytics/analytics.routes.js";
 import { viajeRouter } from "./viaje/viaje.routes.js";
 import { authenticateToken, authorizeRole } from "./middlewares/authMiddlewares.js";
 import { findOneByMail } from "./conductor/conductor.controller.js";
@@ -60,6 +61,7 @@ if(process.env.NODE_ENV === "production" || process.env.NODE_ENV === "test"){ //
   app.use("/api", authenticateToken);
 }
 
+app.use("/api/analytics", analyticsRouter); // Solo el admin puede acceder a las rutas de analytics
 app.use("/api/carga", cargaRouter);
 app.use("/api/categoriaDenuncia", catRouter);
 app.use("/api/lineaCarga", lineaCargaRouter);
