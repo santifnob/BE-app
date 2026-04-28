@@ -1,28 +1,28 @@
 export class BaseWhere {
   [key: string]: any; // Index signature allowing dynamic properties and methods
-  
-  constructor() {}
+
+  constructor() { }
 
   setLikeFilter(attribute: string, value: string | undefined): void {
-    if(value && typeof value === 'string') {
+    if (value && typeof value === 'string') {
       const trimmedValue = value.trim();
-      if(trimmedValue) {
+      if (trimmedValue) {
         this[attribute] = { $like: `%${trimmedValue}%` };
       }
     }
   }
 
   setExactStringFilter(attribute: string, value: string | undefined): void {
-    if(value && typeof value === 'string') {
+    if (value && typeof value === 'string') {
       const trimmedValue = value.trim();
-      if(trimmedValue) {
+      if (trimmedValue) {
         this[attribute] = trimmedValue;
       }
     }
   }
-  
+
   setIdFilter(value: string | undefined): void {
-    if(value !== undefined && value !== null && !isNaN(Number(value))) {
+    if (value !== undefined && value !== null && !isNaN(Number(value))) {
       this.id = Number(value);
     }
   }
@@ -41,7 +41,7 @@ export class BaseWhere {
   }
 
   setForeignKeyFilter(attribute: string, idEntity: string | undefined): void {
-    if(idEntity && !isNaN(Number(idEntity))) {
+    if (idEntity && !isNaN(Number(idEntity))) {
       this[attribute] = { id: Number(idEntity) };
     }
   }
@@ -60,9 +60,9 @@ export class BaseWhere {
 
   // filtrar por el atributo de una entidad relacionada (ej: conductor.nombre)
   setRelatedAttributeLikeFilter(relatedEntityName: string, attribute: string, value: string | undefined): void {
-    if(value && typeof value === 'string') {
+    if (value && typeof value === 'string') {
       const trimmedValue = value.trim();
-      if(trimmedValue) {
+      if (trimmedValue) {
         this[relatedEntityName] = { [attribute]: { $like: `%${trimmedValue}%` } };
       }
     }
@@ -101,7 +101,7 @@ export class BaseWhere {
         this.fechaFin = { $gte: now };
         break;
       default:
-      
+
         this.estado = estadoInferido;
         break;
     }

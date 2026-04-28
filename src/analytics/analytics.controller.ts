@@ -15,10 +15,34 @@ where et.fecha_vigencia = (
 group by et.nombre;`)
     res
       .status(200)
-      .json({ message: 'Estadisticas de la flota: ', data: result });
+      .json({ message: 'Estadisticas de la flota: ', result });
   } catch (error: any) {
     res
       .status(500)
       .json({ message: 'Error al obtener las stats de la flota', error: error.message });
+  }
+}
+
+export async function TripPerformanceStats(req: Request, res: Response): Promise<void> {
+  try {
+    const withObs = await em.execute(`SELECT COUNT(*) as total
+      FROM viaje v
+      WHERE v.estado = 'Activo' 
+        AND v.fecha_fin <= NOW() 
+        AND EXISTS (SELECT 1 FROM observacion WHERE viaje_id = v.id);`)
+
+    const result = await em.execute(`SELECT 
+    COUNT(*) - ? AS withoutObs, 
+    ? AS withObs
+FROM viaje
+WHERE estado = 'Activo' 
+  AND fecha_fin <= NOW();`, [withObs[0].total, withObs[0].total])
+    res
+      .status(200)
+      .json({ message: 'Estadisticas del viaje: ', result });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: 'Error al obtener las stats del viaje', error: error.message });
   }
 }
