@@ -204,13 +204,11 @@ async function add(req: Request, res: Response): Promise<void> {
 
 async function update(req: Request, res: Response): Promise<void> {
   try { 
+    const idViaje = Number.parseInt(req.params.id);
+    const viaje = await em.findOneOrFail(Viaje, { id: idViaje });
+
     const fechaFin = new Date(req.body.sanitizedInput.fechaFin);
     const fechaIni = new Date(req.body.sanitizedInput.fechaIni);
-
-    const idViaje = Number.parseInt(req.body.sanitizedInput.idViaje);
-    const viaje = await em.findOneOrFail(Viaje, { id: idViaje });
-    req.body.sanitizedInput.viaje = viaje;
-    req.body.sanitizedInput.idViaje = undefined;
 
 
     if (req.body.sanitizedInput.idRecorrido !== undefined) {
@@ -280,8 +278,7 @@ async function update(req: Request, res: Response): Promise<void> {
       }
     }
 
-    const id = Number.parseInt(req.params.id);
-    const ViajeToUpdate = await em.findOneOrFail(Viaje, { id });
+    const ViajeToUpdate = viaje;
 
     em.assign(ViajeToUpdate, req.body.sanitizedInput);
     await em.flush();
@@ -293,6 +290,7 @@ async function update(req: Request, res: Response): Promise<void> {
         data: ViajeToUpdate,
       });
   } catch (error: any) {
+    console.log(error);
     res
       .status(500)
       .json({

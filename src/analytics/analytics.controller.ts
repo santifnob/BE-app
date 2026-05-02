@@ -88,6 +88,7 @@ export async function routeProfitabilityStats(req: Request, res: Response): Prom
       on lc.viaje_id = v.id
     inner join carga c
       on c.id = lc.carga_id
+    where v.estado = "Activo"
     group by tr.id, tr.ciudad_salida, tr.ciudad_llegada, tr.total_km;
           ;
       `)
@@ -121,7 +122,7 @@ export async function upcomingTrips(req: Request, res: Response): Promise<void> 
       on c.id = v.conductor_id
     inner join tren t
       on t.id = v.tren_id
-    where v.estado in ("Activo", "Pendiente") and v.fecha_ini >= now() and datediff(v.fecha_ini, now()) <= 30;
+    where v.estado in ("Activo", "Pendiente") and v.fecha_ini >= now() and datediff(v.fecha_ini, now()) <= 7;
       `)
 
     res
