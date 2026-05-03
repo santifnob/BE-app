@@ -134,3 +134,98 @@ export async function upcomingTrips(req: Request, res: Response): Promise<void> 
       .json({ message: 'Error al obtener las stats de rentabilidad', error: error.message });
   }
 }
+
+export async function earningsConductor(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await em.execute(` select c.id, concat(c.nombre, " ", c.apellido) as conductor, sum(lc.cantidad_vagon * ca.precio) as earnings from conductor c 
+    inner join viaje v
+      on v.conductor_id = c.id
+    inner join linea_carga lc
+      on lc.viaje_id = v.id 
+    inner join carga ca
+      on ca.id = lc.carga_id
+    where v.estado = "Activo"
+    group by c.id, c.nombre, c.apellido
+    order by earnings desc;`) 
+    res
+      .status(200)
+      .json({ message: 'Ganancias por conductor: ', result });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: 'Error al obtener las ganancias por conductor', error: error.message });
+  }  
+}
+
+export async function kilometersConductor(req: Request, res: Response): Promise<void> { 
+  try {
+    const result = await em.execute(` select c.id, concat(c.nombre, " ", c.apellido) as conductor, sum(r.total_km) as kilometers from conductor c
+    inner join viaje v
+      on v.conductor_id = c.id
+    inner join recorrido r
+      on r.id = v.recorrido_id
+    where v.estado = "Activo"
+    group by c.id, c.nombre, c.apellido
+    order by kilometers desc;`)
+    res
+      .status(200)
+      .json({ message: 'Kilometros recorridos por conductor: ', result });
+  } catch (error: any) {
+    res      .status(500)
+      .json({ message: 'Error al obtener los kilometros por conductor', error: error.message });
+  } 
+}
+
+export async function lastLicenseConductor(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await em.execute(` select c.id, concat(c.nombre, " ", c.apellido) as conductor, l.fecha_vencimiento from conductor c
+    inner join licencia l
+  on l.conductor_id = c.id
+where l.fecha_hecho = (
+  select max(fecha_hecho) from licencia
+    where estado = "Activo" and fecha_hecho <= now() and conductor_id = c.id
+);`)
+    res
+      .status(200)
+      .json({ message: 'Fecha de vencimiento de la última licencia por conductor: ', result });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: 'Error al obtener la fecha de vencimiento de la última licencia por conductor', error: error.message });
+  }
+}
+
+export async function nextTripConductor(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await em.execute(` select c.id, concat(c.nombre, " ", c.apellido) as conductor, v.fecha_ini from conductor c
+    inner join viaje v
+      on v.conductor_id = c.id
+where v.estado in ("Activo", "Pendiente") and v.fecha_ini >= now()
+order by v.fecha_ini asc;`)
+    res
+      .status(200)
+      .json({ message: 'Fecha del próximo viaje por conductor: ', result });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: 'Error al obtener la fecha del próximo viaje por conductor', error: error.message });
+  } 
+}
+
+export async function tripChartConductor(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await em.execute(` select c.id, concat(c.nombre, " ", c.apellido) as conductor, count(v.id) as trips from conductor c
+    inner join viaje v
+      on v.conductor_id = c.id  
+where v.estado = "Activo"
+group by c.id, c.nombre, c.apellido
+order by trips desc;`)
+    res
+      .status(200)
+      .json({ message: 'Cantidad de viajes por conductor: ', result });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: 'Error al obtener la cantidad de viajes por conductor', error: error.message });
+  } 
+}
