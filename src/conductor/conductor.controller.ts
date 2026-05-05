@@ -87,6 +87,10 @@ async function add(req: Request, res: Response): Promise<void> {
         data: conductor,
       });
   } catch (error: any) {
+    const msg:string = error.message
+    if(msg.includes("conductor_email_unique")){
+      error.message = "Ya existe un conductor con ese email"
+    }
     res
       .status(500)
       .json({
