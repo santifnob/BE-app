@@ -76,7 +76,7 @@ async function findAll(req: Request, res: Response): Promise<void> {
         "tren",
         "recorrido",
         "conductor",
-        "lineasCarga",
+        "lineasCarga.carga",
         "observaciones",
       ], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
       baseWhere
