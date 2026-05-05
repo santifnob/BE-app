@@ -229,3 +229,94 @@ order by trips desc;`)
       .json({ message: 'Error al obtener la cantidad de viajes por conductor', error: error.message });
   } 
 }
+
+export async function cargoDistribution(req: Request, res: Response): Promise<void> {
+  try {
+    const result = await em.execute(`
+    select 
+        tp.id, 
+        tp.name as categoryName, 
+        sum(lc.cantidad_vagon) as wagonCount,
+        sum(sum(lc.cantidad_vagon)) over () as totalWagonCount,
+        (sum(c.precio * lc.cantidad_vagon) / sum(sum(c.precio * lc.cantidad_vagon)) over ()) * 100 as revenuePercentage
+    from tipo_carga tp
+    inner join carga c on c.tipo_carga_id = tp.id
+    inner join linea_carga lc on lc.carga_id = c.id
+    inner join viaje v on lc.viaje_id = v.id 
+    where tp.estado = 'Activo' 
+      and c.estado = 'Activo' 
+      and lc.estado = 'Activo'
+      and v.estado = 'Activo' 
+    group by tp.id, tp.name
+    order by wagonCount desc
+    limit 5;
+      `)
+    res
+      .status(200)
+      .json({ message: 'Distribucion de las tipo cargas: ', result });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: 'Error al obtener la distribucion de las tipo cargas', error: error.message });
+  } 
+}
+
+export async function cancellationRiskStats(req: Request, res: Response): Promise<void> {
+  try {
+    const rows = await em.execute(`
+select 
+    *,
+    case 
+        when (rate_recent - rate_previous) > 0 then concat('+', round(rate_recent - rate_previous, 1), '%')
+        else concat(round(rate_recent - rate_previous, 1), '%')
+    end as trend
+from (
+    select 
+        concat(r.ciudad_salida, "-", r.ciudad_llegada) as routeName,
+        count(v.id) as routeTripsCount,
+        -- tasa de cancelación histórica 
+        (sum(case when v.estado in ('inactivo', 'rechazado') then 1 else 0 end) * 100.0 / count(v.id)) as rate,
+        
+        -- tasa de los últimos 30 días
+        (sum(case when v.estado in ('inactivo', 'rechazado') and v.fecha_ini >= date_sub(now(), interval 30 day) then 1 else 0 end) * 100.0 / 
+         nullif(sum(case when v.fecha_ini >= date_sub(now(), interval 30 day) then 1 else 0 end), 0)) as rate_recent,
+        
+        -- tasa de los 30 días anteriores (del día 60 al 30)
+        (sum(case when v.estado in ('inactivo', 'rechazado') and v.fecha_ini between date_sub(now(), interval 60 day) and date_sub(now(), interval 31 day) then 1 else 0 end) * 100.0 / 
+         nullif(sum(case when v.fecha_ini between date_sub(now(), interval 60 day) and date_sub(now(), interval 31 day) then 1 else 0 end), 0)) as rate_previous,
+
+        -- totales globales 
+        sum(count(v.id)) over () as tripsCount,
+        (sum(sum(case when v.estado in ('inactivo', 'rechazado') then 1 else 0 end)) over () * 100.0 / 
+         sum(count(v.id)) over ()) as overallRate
+    from viaje v
+    inner join recorrido r on v.recorrido_id = r.id
+    group by r.id, r.ciudad_salida, r.ciudad_llegada
+) as base_query
+where rate > 5
+order by rate desc;
+      `)
+
+    const result = rows.length === 0 ? { overallRate: 0, topRiskRoutes: [], tripsCount: 0 } : {
+      
+      overallRate: parseFloat(Number(rows[0].overallRate).toFixed(1)),
+      tripsCount: Number(rows[0].tripsCount),
+      
+      topRiskRoutes: rows.map(row => 
+        ({
+        routeName: row.routeName,
+        rate: parseFloat(Number(row.rate).toFixed(1)),
+        trend: row.trend || "--" 
+      }))
+    };
+
+    res
+      .status(200)
+      .json({ message: 'Riesgo de cancelacion del viaje: ', result });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: 'Error al obtener las estadisticas del riesgo de cancelacion', error: error.message });
+  } 
+}
+

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { fleetStats, TripPerformanceStats, licenseExpirationAlert, routeProfitabilityStats, upcomingTrips, earningsConductor, kilometersConductor, lastLicenseConductor, nextTripConductor, tripChartConductor } from "./analytics.controller.js";
+import { fleetStats, TripPerformanceStats, licenseExpirationAlert, routeProfitabilityStats, upcomingTrips, earningsConductor, kilometersConductor, lastLicenseConductor, nextTripConductor, tripChartConductor, cargoDistribution, cancellationRiskStats } from "./analytics.controller.js";
 
 const analyticsRouter = Router();
 
@@ -19,5 +19,7 @@ analyticsRouter.get("/kilometers-conductor", asyncHandler(kilometersConductor));
 analyticsRouter.get("/last-license-conductor", asyncHandler(lastLicenseConductor));
 analyticsRouter.get("/next-trip-conductor", asyncHandler(nextTripConductor));
 analyticsRouter.get("/trip-chart-conductor", asyncHandler(tripChartConductor));
+analyticsRouter.get("/cargo-distribution", asyncHandler(cargoDistribution));
+analyticsRouter.get("/cancellation-risk-stats", asyncHandler(cancellationRiskStats));
 
 export { analyticsRouter };

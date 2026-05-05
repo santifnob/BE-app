@@ -16,7 +16,7 @@ INSERT INTO categoria_denuncia (titulo, descripcion, estado, created_at) VALUES
 ('Infraestructura', 'Problemas con vías o estaciones', 'Activo', NOW());
 
 -- Insert TipoCarga
-INSERT INTO tipo_carga (name, desc, estado, created_at) VALUES
+INSERT INTO tipo_carga (`name`, `desc`, estado, created_at) VALUES
 ('Granos', 'Cargas de granos y cereales', 'Activo', NOW()),
 ('Minerales', 'Minerales y metales', 'Activo', NOW()),
 ('Combustibles', 'Petróleo y derivados', 'Activo', NOW()),
@@ -25,7 +25,7 @@ INSERT INTO tipo_carga (name, desc, estado, created_at) VALUES
 ('Químicos', 'Productos químicos', 'Inactivo', NOW());
 
 -- Insert Carga
-INSERT INTO carga (name, precio, tipo_carga_id, estado, created_at) VALUES
+INSERT INTO carga (`name`, precio, tipo_carga_id, estado, created_at) VALUES
 ('Trigo', 150.00, 1, 'Activo', NOW()),
 ('Maíz', 140.00, 1, 'Activo', NOW()),
 ('Arroz', 160.00, 1, 'Activo', NOW()),
@@ -60,7 +60,7 @@ INSERT INTO recorrido (ciudad_salida, ciudad_llegada, total_km, estado, created_
 ('La Rioja', 'San Juan', 450, 'Activo', NOW());
 
 -- Insert Conductor
-INSERT INTO conductor (nombre, apellido, email, password, estado, created_at) VALUES
+INSERT INTO conductor (nombre, apellido, email, `password`, estado, created_at) VALUES
 ('Juan', 'Pérez', 'juan.perez@email.com', 'password123', 'Activo', NOW()),
 ('María', 'García', 'maria.garcia@email.com', 'password123', 'Activo', NOW()),
 ('Carlos', 'Rodríguez', 'carlos.rodriguez@email.com', 'password123', 'Activo', NOW()),
@@ -249,7 +249,36 @@ INSERT INTO viaje (fecha_ini, fecha_fin, estado, tren_id, recorrido_id, conducto
 ('2026-08-04', '2026-08-05', 'Activo', 12, 12, 2, NOW()),
 ('2026-08-05', '2026-08-06', 'Activo', 13, 13, 3, NOW()),
 ('2026-08-06', '2026-08-07', 'Activo', 14, 14, 4, NOW()),
-('2026-08-07', '2026-08-08', 'Activo', 15, 15, 5, NOW());
+('2026-08-07', '2026-08-08', 'Activo', 15, 15, 5, NOW()),
+('2026-05-05', '2026-05-06', 'Inactivo', 1, 1, 1, NOW()),
+('2026-05-06', '2026-05-07', 'Rechazado', 2, 2, 2, NOW()),
+('2026-05-07', '2026-05-08', 'Inactivo', 3, 3, 3, NOW()),
+('2026-05-08', '2026-05-09', 'Rechazado', 4, 4, 4, NOW()),
+('2026-05-09', '2026-05-10', 'Inactivo', 5, 5, 5, NOW()),
+('2026-05-10', '2026-05-11', 'Rechazado', 6, 6, 6, NOW()),
+('2026-05-11', '2026-05-12', 'Inactivo', 7, 7, 7, NOW()),
+('2026-05-12', '2026-05-13', 'Rechazado', 8, 8, 8, NOW()),
+('2026-05-13', '2026-05-14', 'Inactivo', 9, 9, 9, NOW()),
+('2026-05-14', '2026-05-15', 'Rechazado', 10, 10, 10, NOW());
+
+-- Insert Viaje trend test records for cancellation risk
+INSERT INTO viaje (fecha_ini, fecha_fin, estado, tren_id, recorrido_id, conductor_id, created_at) VALUES
+('2026-03-01', '2026-03-02', 'Activo', 1, 1, 1, NOW()),
+('2026-03-02', '2026-03-03', 'Pendiente', 2, 2, 2, NOW()),
+('2026-03-03', '2026-03-04', 'Inactivo', 3, 3, 3, NOW()),
+('2026-03-04', '2026-03-05', 'Activo', 4, 4, 4, NOW()),
+('2026-03-05', '2026-03-06', 'Rechazado', 5, 5, 5, NOW()),
+('2026-03-06', '2026-03-07', 'Activo', 6, 6, 6, NOW()),
+('2026-03-07', '2026-03-08', 'Rechazado', 7, 7, 7, NOW()),
+('2026-03-08', '2026-03-09', 'Activo', 8, 8, 8, NOW()),
+('2026-03-09', '2026-03-10', 'Inactivo', 9, 9, 9, NOW()),
+('2026-03-10', '2026-03-11', 'Activo', 10, 10, 10, NOW()),
+('2026-03-11', '2026-03-12', 'Pendiente', 11, 11, 11, NOW()),
+('2026-03-12', '2026-03-13', 'Rechazado', 12, 12, 12, NOW()),
+('2026-03-13', '2026-03-14', 'Activo', 13, 13, 13, NOW()),
+('2026-03-14', '2026-03-15', 'Inactivo', 14, 14, 14, NOW()),
+('2026-03-15', '2026-03-16', 'Rechazado', 15, 15, 15, NOW()),
+('2026-03-16', '2026-03-17', 'Activo', 1, 1, 1, NOW());
 
 -- Insert LineaCarga for each viaje (2 per viaje for simplicity)
 INSERT INTO linea_carga (cantidad_vagon, estado, carga_id, viaje_id, created_at) VALUES
@@ -452,7 +481,27 @@ INSERT INTO linea_carga (cantidad_vagon, estado, carga_id, viaje_id, created_at)
 (2, 'Activo', 5, 99, NOW()),
 (7, 'Activo', 6, 99, NOW()),
 (3, 'Activo', 7, 100, NOW()),
-(5, 'Activo', 8, 100, NOW());
+(5, 'Activo', 8, 100, NOW()),
+(3, 'Activo', 1, 101, NOW()),
+(5, 'Activo', 2, 101, NOW()),
+(4, 'Activo', 3, 102, NOW()),
+(6, 'Activo', 4, 102, NOW()),
+(2, 'Activo', 5, 103, NOW()),
+(7, 'Activo', 6, 103, NOW()),
+(3, 'Activo', 7, 104, NOW()),
+(5, 'Activo', 8, 104, NOW()),
+(4, 'Activo', 9, 105, NOW()),
+(6, 'Activo', 10, 105, NOW()),
+(2, 'Activo', 11, 106, NOW()),
+(8, 'Activo', 12, 106, NOW()),
+(3, 'Activo', 1, 107, NOW()),
+(5, 'Activo', 2, 107, NOW()),
+(4, 'Activo', 3, 108, NOW()),
+(6, 'Activo', 4, 108, NOW()),
+(2, 'Activo', 5, 109, NOW()),
+(7, 'Activo', 6, 109, NOW()),
+(3, 'Activo', 7, 110, NOW()),
+(5, 'Activo', 8, 110, NOW());
 
 -- Insert Observacion for some viajes
 INSERT INTO observacion (observaciones, estado, categoria_denuncia_id, viaje_id, created_at) VALUES
@@ -465,5 +514,4 @@ INSERT INTO observacion (observaciones, estado, categoria_denuncia_id, viaje_id,
 ('Viaje programado', 'Activo', 1, 7, NOW()),
 ('Incidente de seguridad menor', 'Activo', 2, 8, NOW()),
 ('Carga retrasada', 'Activo', 3, 9, NOW()),
-('Comentarios positivos de pasajeros', 'Activo', 6, 10, NOW());</content>
-<parameter name="filePath">d:\multirepo-folder\BE-FE\BE-app\docs\sample_data_dump.sql
+('Comentarios positivos de pasajeros', 'Activo', 6, 10, NOW());
