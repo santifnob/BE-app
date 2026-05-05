@@ -25,6 +25,8 @@ export class Viaje extends BaseEntity {
   @Property({ nullable: false })
   estado!: string; // cambiar el atributo a rechazado que contiene un booleano
 
+  // Estados: Activo, Inactivo, Rechazado, Pendiente
+
   // conductor asignado atributo aparte
 
   @ManyToOne(() => Tren, { nullable: false })
@@ -45,4 +47,12 @@ export class Viaje extends BaseEntity {
     cascade: [Cascade.ALL],
   })
   observaciones = new Collection<Observacion>(this);
+
+  validarSolapamiento(fechaInicio: Date, fechaFin: Date): boolean {
+    return fechaInicio <= this.fechaFin && fechaFin >= this.fechaIni;
+  }
+
+  estaActivo(): boolean {
+    return this.estado == "Activo";
+  }
 }

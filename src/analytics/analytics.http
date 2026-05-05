@@ -1,0 +1,28 @@
+### Get Analytics
+GET http://localhost:3000/api/analytics/fleet-stats
+Content-Type: application/json
+###
+GET http://localhost:3000/api/analytics/trip-performance-stats
+Content-Type: application/json
+###
+GET http://localhost:3000/api/analytics/license-expiration-alerts
+Content-Type: application/json
+###
+GET http://localhost:3000/api/analytics/route-profitability-stats
+Content-Type: application/json
+###
+GET http://localhost:3000/api/analytics/upcoming-trips
+###
+GET http://localhost:3000/api/analytics/earnings-conductor
+###
+GET http://localhost:3000/api/analytics/kilometers-conductor
+###
+GET http://localhost:3000/api/analytics/last-license-conductor
+###
+GET http://localhost:3000/api/analytics/next-trip-conductor
+###
+GET http://localhost:3000/api/analytics/trip-chart-conductor
+###
+GET http://localhost:3000/api/analytics/cargo-distribution
+###
+GET http://localhost:3000/api/analytics/cancellation-risk-stats

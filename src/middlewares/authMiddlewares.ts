@@ -1,4 +1,4 @@
-import { secretKey } from "../app.js";
+import { SECRET_KEY } from "../app.js";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
@@ -8,14 +8,13 @@ export function authenticateToken(
   next: NextFunction
 ): Response | undefined {
   const token = req.cookies.token;
-  console.log(token);
   if (!token) {
     return res.status(401).send("Token no proporcionado");
   }
 
   jwt.verify(
     token,
-    secretKey,
+    SECRET_KEY,
     (
       err: jwt.VerifyErrors | null,
       payload: string | jwt.JwtPayload | undefined

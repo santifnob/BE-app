@@ -15,4 +15,11 @@ export class Licencia extends BaseEntity {
 
   @ManyToOne(() => Conductor, { nullable: false })
   conductor!: Rel<Conductor>;
+
+  validarLicencia(fechaComienzo: Date, fechaFin: Date): Boolean {
+    if (this.estado === "Activo" && this.fechaVencimiento > fechaFin && fechaComienzo > this.fechaHecho) {
+      return true;
+    }
+    return false;
+  }
 }

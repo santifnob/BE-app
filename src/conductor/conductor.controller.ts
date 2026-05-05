@@ -1,16 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { orm } from "../shared/db/orm.js";
 import { Conductor } from "./conductor.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
-
-type WhereType = {
-  id?: { $lt: number };
-  nombre?: string;
-  apellido?: string;
-  email?: string; 
-  estado?: string;
-} // Tipo para manejar los filtros que llegan desde el back (sino no dejaba crearlos dinamicamente en el obj)
 
 function sanitizeConductorInput(
   req: Request,
@@ -35,63 +29,28 @@ function sanitizeConductorInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
+    const baseWhere: any = buildBaseWhere(req);
 
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where: WhereType = cursor ? { id: { $lt: cursor }} : {};
-    const filterColumn = req.query.filterColumn || undefined
-    const filterValue = req.query.filterValue || undefined
-
-    if (filterColumn && filterValue && where) {
-      switch (filterColumn) {
-        case "nombre": where.nombre = filterValue.toString(); break;
-        case "apellido": where.apellido = filterValue.toString(); break; 
-        case "email": where.email = filterValue.toString(); break;
-        case "estado": where.estado = filterValue.toString(); break;
-        default: break; 
-      }
-    }
-  
-    let conductores = await em.find(Conductor, where, {
+    const result = await getInfiniteScroll<Conductor>({
+      req,
+      em,
+      entity: Conductor,
+      message: "Listado de los conductores: ",
       populate: ["licencias", "viajes"],
-      orderBy: { id: "desc" }, // mismos criterios de orden
-      limit: limit + 1, // pedimos uno extra
+      baseWhere 
     });
-
-    const hasNextPage = conductores.length > limit;
-    conductores = conductores.slice(0, limit);
 
     res.status(200).json({
-      message: "Listado de los conductores",
-      items: conductores,
-      nextCursor: hasNextPage ? conductores.at(-1)!.id : null,
-      hasNextPage,
+      ...result,
     });
+
   } catch (error: any) {
     res.status(500).json({
-      message: "Error al obtener el listado de los conductores",
+      message: "Error al obtener el listado de los trenes",
       error: error.message,
     });
   }
 }
-/* {
-  try {
-    console.log('aca')
-    const conductores = await em.find(Conductor, {}, { populate: ['licencias', 'viajes'] })
-    res.status(200).json({ message: 'Listado de los conductores:', data: conductores })
-  } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener el listado de los conductores', error: error.message })
-  }
-} */
 
 async function findOne(req: Request, res: Response): Promise<void> {
   try {
@@ -119,7 +78,6 @@ async function findOne(req: Request, res: Response): Promise<void> {
 
 async function add(req: Request, res: Response): Promise<void> {
   try {
-    // console.log('Sanitized input:', req.body.sanitizedInput) para ver que llega bien
     const conductor = em.create(Conductor, req.body.sanitizedInput);
     await em.flush();
     res
@@ -129,6 +87,10 @@ async function add(req: Request, res: Response): Promise<void> {
         data: conductor,
       });
   } catch (error: any) {
+    const msg:string = error.message
+    if(msg.includes("conductor_email_unique")){
+      error.message = "Ya existe un conductor con ese email"
+    }
     res
       .status(500)
       .json({
@@ -159,20 +121,6 @@ async function update(req: Request, res: Response): Promise<void> {
       });
   }
 }
-
-/* DIFERENCIA
-async function update (req: Request, res: Response) {
-  try {
-    const id = Number.parseInt(req.params.id)
-    const conductor = em.getReference(Conductor, id)
-    em.assign(conductor, req.body)
-    await em.flush()
-    res.status(200).json({ message: 'conductor actualizado', data: conductor })
-  } catch (error: any) {
-    res.status(500).json({ message: error.message })
-  }
-}
-*/
 
 async function remove(req: Request, res: Response): Promise<void> {
   try {
@@ -208,6 +156,19 @@ export async function findOneByMail(
   } catch (error: any) {
     return undefined;
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: BaseWhere = new BaseWhere();
+
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+  baseWhere.setLikeFilter("nombre", req.query.nombre as string | undefined);
+  baseWhere.setLikeFilter("apellido", req.query.apellido as string | undefined);
+  baseWhere.setLikeFilter("email", req.query.email as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+
+  return baseWhere;
 }
 
 export { sanitizeConductorInput, findAll, findOne, add, update, remove };

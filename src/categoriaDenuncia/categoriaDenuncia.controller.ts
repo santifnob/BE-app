@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { CategoriaDenuncia } from "./categoriaDenuncia.entity.js";
 import { orm } from "../shared/db/orm.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -26,38 +28,20 @@ function sanitizeRecorridoInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
+    const baseWhere: any = buildBaseWhere(req);
 
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let categoriaDenuncias = await em.find(CategoriaDenuncia, where, {
-      orderBy: { id: "desc" }, // mismos criterios de orden
-      limit: limit + 1, // pedimos uno extra
-      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+    const result = await getInfiniteScroll<CategoriaDenuncia>({
+      req,
+      em,
+      entity: CategoriaDenuncia,
+      message: "Listado de categorias de denuncia:",
+      baseWhere
     });
 
-    const hasNextPage = categoriaDenuncias.length > limit;
-    categoriaDenuncias = categoriaDenuncias.slice(0, limit);
-
-    res.status(200).json({
-      message: "Listado de los categoriaDenuncias",
-      items: categoriaDenuncias,
-      nextCursor: hasNextPage ? categoriaDenuncias.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
-      message: "Error al obtener el listado de los categoriaDenuncias",
+      message: "Error al obtener el listado de categorias de denuncia",
       error: error.message,
     });
   }
@@ -152,6 +136,18 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: BaseWhere = new BaseWhere();
+
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+  baseWhere.setLikeFilter("titulo", req.query.titulo as string | undefined);
+  baseWhere.setLikeFilter("descripcion", req.query.descripcion as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+
+  return baseWhere;
 }
 
 export { sanitizeRecorridoInput, findAll, findOne, add, update, remove };

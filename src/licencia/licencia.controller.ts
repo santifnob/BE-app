@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import { Licencia } from "./licencia.entity.js";
 import { orm } from "../shared/db/orm.js";
 import { Conductor } from "../conductor/conductor.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -29,50 +31,25 @@ function sanitizeLicenciaInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
+    const baseWhere: any = buildBaseWhere(req);
 
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let licencias = await em.find(Licencia, where, {
-      populate: ["conductor"], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
-      orderBy: { id: "desc" },
-      limit: limit + 1,
+    const result = await getInfiniteScroll<Licencia>({
+      req,
+      em,
+      entity: Licencia,
+      message: "Listado de licencias:",
+      populate: ["conductor"],
+      baseWhere
     });
 
-    const hasNextPage = licencias.length > limit;
-    licencias = licencias.slice(0, limit);
-
-    res.status(200).json({
-      message: "Listado de las licencias de conductor",
-      items: licencias,
-      nextCursor: hasNextPage ? licencias.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
-      message: "Error al obtener el listado de las licencias de conductor",
+      message: "Error al obtener el listado de licencias",
       error: error.message,
     });
   }
 }
-
-/*  try {
-    const licencias = await em.find(Licencia, {}, { populate: ['conductor'] })
-    res.status(200).json({ message: 'Listado de las licencias de conductor: ', data: licencias })
-  } catch (error: any) {
-    res.status(500).json({ message: 'Error al obtener el listado de las licencias de conductor', error: error.message })
-  }
-} */
 
 async function findOne(req: Request, res: Response): Promise<void> {
   try {
@@ -147,17 +124,6 @@ async function add(req: Request, res: Response): Promise<void> {
       });
   }
 }
-/* try {
-    const idConductor = Number.parseInt(req.body.sanitizedInput.idConductor)
-    const conductor = await em.findOneOrFail(Conductor, { id: idConductor })
-    req.body.sanitizedInput.conductor = conductor
-    const licencia = em.create(Licencia, req.body.sanitizedInput)
-    await em.flush()
-    res.status(201).json({ message: 'La "Licencia de conductor" ha sido creada con exito: ', data: licencia })
-  } catch (error: any) {
-    res.status(500).json({ message: 'Error al agregar la "Licencia de conductor"', error: error.message })
-  }
-} */
 
 async function update(req: Request, res: Response): Promise<void> {
   try {
@@ -208,6 +174,30 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: BaseWhere = new BaseWhere();
+
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setForeignKeyFilter("conductor", req.query.conductorId as string | undefined);
+  baseWhere.setDateRangeFilter("fechaHecho", req.query.fechaHechoIni as any, req.query.fechaHechoFin as any);
+  baseWhere.setDateRangeFilter("fechaVencimiento", req.query.fechaVencimientoIni as any, req.query.fechaVencimientoFin as any);
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+
+  // Special handling for conductorNombreYApellido - search in both nombre and apellido
+  if (req.query.conductorNombreYApellido && typeof req.query.conductorNombreYApellido === 'string') {
+    const value = req.query.conductorNombreYApellido.trim();
+    if (value) {
+      baseWhere.$or = [
+        { conductor: { nombre: { $like: `%${value}%` } } },
+        { conductor: { apellido: { $like: `%${value}%` } } }
+      ];
+    }
+  }
+
+  return baseWhere;
 }
 
 export { sanitizeLicenciaInput, findAll, findOne, add, update, remove };

@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { orm } from "../shared/db/orm.js";
 import { Carga } from "./carga.entity.js";
 import { TipoCarga } from "../tipoCarga/tipoCarga.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -36,35 +38,18 @@ function sanitizeCargaInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
+    const baseWhere: any = buildBaseWhere(req);
 
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let cargas = await em.find(Carga, where, {
+    const result = await getInfiniteScroll<Carga>({
+      req,
+      em,
+      entity: Carga,
+      message: "Listado de las cargas:",
       populate: ["tipoCarga"], // Hay que ver todavia que hacemos con respecto a que relaciones mostramos
-      orderBy: { id: "desc" },
-      limit: limit + 1,
+      baseWhere
     });
 
-    const hasNextPage = cargas.length > limit;
-    cargas = cargas.slice(0, limit);
-
-    res.status(200).json({
-      message: "Listado de las cargas",
-      items: cargas,
-      nextCursor: hasNextPage ? cargas.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
       message: "Error al obtener el listado de las cargas",
@@ -72,6 +57,7 @@ async function findAll(req: Request, res: Response): Promise<void> {
     });
   }
 }
+
 
 async function findOne(req: Request, res: Response): Promise<void> {
   try {
@@ -176,20 +162,6 @@ async function update(req: Request, res: Response): Promise<void> {
   }
 }
 
-/* DIFERENCIA
-async function update (req: Request, res: Response) {
-  try {
-    const id = Number.parseInt(req.params.id)
-    const Carga = em.getReference(Carga, id)
-    em.assign(Carga, req.body)
-    await em.flush()
-    res.status(200).json({ message: 'Carga actualizado', data: Carga })
-  } catch (error: any) {
-    res.status(500).json({ message: error.message })
-  }
-}
-*/
-
 async function remove(req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id);
@@ -206,6 +178,19 @@ async function remove(req: Request, res: Response): Promise<void> {
       .status(500)
       .json({ message: 'Error al eliminar la "Carga"', error: error.message });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: BaseWhere = new BaseWhere();
+
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+  baseWhere.setLikeFilter("name", req.query.name as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+  baseWhere.setRangeNumberFilter("precio", req.query.minPrecio as any, req.query.maxPrecio as any);
+  baseWhere.setRelatedAttributeLikeFilter("tipoCarga", "name", req.query.nombreTipoCarga as string | undefined);
+
+  return baseWhere;
 }
 
 export { findAll, findOne, add, update, remove, sanitizeCargaInput };

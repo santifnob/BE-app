@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { Tren } from "./tren.entity.js";
+import { EstadoTren } from "../estadoTren/estadoTren.entity.js";
 import { orm } from "../shared/db/orm.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { SqlEntityManager } from "@mikro-orm/mysql";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -31,63 +35,37 @@ function sanitizarTrenInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limit = Number(req.query.limit) || 10;
-    const cursor = req.query.cursor ? Number(req.query.cursor) : null;
-    // Condición para traer solo registros después del cursor
-    
-    const where: WhereType = cursor ? { id: { $lt: cursor }} : {};
-    const filterColumn = req.query.filterColumn || undefined
-    const filterValue = req.query.filterValue || undefined
+    const baseWhere: any = buildBaseWhere(req);
 
-    if (filterColumn && filterValue && where) {
-      switch (filterColumn) {
-        case "color": where.color = filterValue.toString(); break;
-        case "modelo": where.modelo = filterValue.toString(); break; 
-        case "estado": where.estadosTren = {nombre: filterValue.toString()} ; break;
-        default: break; 
-      }
-    }
-
-    let trenes = await em.find(Tren, where, {
+    const result = await getInfiniteScroll<Tren>({
+      req,
+      em,
+      entity: Tren,
+      message: "Listado de los trenes: ",
       populate: ["viajes", "estadosTren"],
-      orderBy: { id: "desc" }, // 'asc' o 'desc' <-  valor por defecto 'desc'
-      limit: limit + 1, // pedimos uno más para saber si hay next page
+      baseWhere 
     });
 
-    // Detectamos si hay más páginas
-    const hasNextPage = trenes.length > limit;
-    trenes = trenes.slice(0, limit); // en caso de que haya uno más, lo descartamos
-
-    const trenesConEstado = trenes.map((tren) => {
+    const itemsConEstado = result.items.map((tren) => {
       const estados = tren.estadosTren || [];
       const lastEstado = estados
         .toArray()
         .filter((e) => e.estado === "Activo")
-        .sort((e1, e2) => {
-          return e2.fechaVigencia.getTime() - e1.fechaVigencia.getTime();
-        })[0];
-      
-console.log('filterColumn', filterColumn)
-    console.log('filterValue', filterValue)
+        .sort((e1, e2) => e2.fechaVigencia.getTime() - e1.fechaVigencia.getTime())[0];
 
       return { ...tren, estadoActual: lastEstado };
     });
 
-    res
-      .status(200)
-      .json({
-        message: "Listado de los trenes: ",
-        items: trenesConEstado,
-        nextCursor: hasNextPage ? trenesConEstado.at(-1)!.id : null,
-        hasNextPage,
-      });
+    res.status(200).json({
+      ...result,
+      items: itemsConEstado, 
+    });
+
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        message: "Error al obtener el listado de los trenes",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Error al obtener el listado de los trenes",
+      error: error.message,
+    });
   }
 }
 
@@ -155,6 +133,55 @@ async function remove(req: Request, res: Response): Promise<void> {
       .status(500)
       .json({ message: 'Error al eliminar el "Tren"', error: error.message });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: BaseWhere = new BaseWhere();
+
+  baseWhere.setLikeFilter("color", req.query.color as string | undefined);
+  baseWhere.setLikeFilter("modelo", req.query.modelo as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+
+  // Logica más compleja para filtrar por estado del tren
+  if (req.query.estadoTren && typeof req.query.estadoTren === 'string') {
+    const estado = req.query.estadoTren.trim();
+
+    if (estado.length > 0) {
+      const subQuery = buildEstadoTrenFilter(estado); // convierte a SQL usable
+      if (baseWhere.id !== undefined) {
+        baseWhere.$and = [
+          { id: baseWhere.id },
+          { id: { $in: subQuery } }
+        ];
+        delete baseWhere.id;
+      } else {
+        baseWhere.id = { $in: subQuery };
+      }
+    }
+  }
+
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+
+  return baseWhere;
+}
+
+function buildEstadoTrenFilter(estado: string) {
+  const emSql = em as SqlEntityManager // Permite utilizar el queryBuilder
+
+  const subQb = emSql.qb(EstadoTren, 'et')
+    .select('et.tren')
+    .where({ nombre: estado })
+    .andWhere({ fechaVigencia: { $lt: new Date() } })
+    .andWhere(`
+      et.fecha_vigencia = (
+        SELECT MAX(et2.fecha_vigencia)
+        FROM estado_tren et2
+        WHERE et2.tren_id = et.tren_id
+        AND et2.fecha_vigencia < NOW()
+      )
+    `)
+
+  return subQb.getKnexQuery()
 }
 
 export { sanitizarTrenInput, findAll, findOne, add, update, remove };

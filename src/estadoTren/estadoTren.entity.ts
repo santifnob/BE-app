@@ -24,4 +24,10 @@ export class EstadoTren extends BaseEntity {
 
   @ManyToOne(() => Tren, { nullable: false })
   tren!: Rel<Tren>;
+
+  estaActivo(): boolean {
+    return this.estado === "Activo";
+  }
+
+  
 }

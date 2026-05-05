@@ -3,6 +3,8 @@ import { Observacion } from "./observacion.entity.js";
 import { CategoriaDenuncia } from "../categoriaDenuncia/categoriaDenuncia.entity.js";
 import { orm } from "../shared/db/orm.js";
 import { Viaje } from "../viaje/viaje.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -28,26 +30,18 @@ function sanitizeObservacionInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limit = Number(req.query.limit) || 10;
-    const cursor = req.query.cursor ? Number(req.query.cursor) : null;
+    const baseWhere: any = buildBaseWhere(req);
 
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let observaciones = await em.find(Observacion, where, {
+    const result = await getInfiniteScroll<Observacion>({
+      req,
+      em,
+      entity: Observacion,
+      message: "Listado de observaciones:",
       populate: ["viaje", "categoriaDenuncia", "viaje.recorrido"],
-      orderBy: { id: "desc" },
-      limit: limit + 1,
+      baseWhere
     });
 
-    const hasNextPage = observaciones.length > limit;
-    observaciones = observaciones.slice(0, limit);
-
-    res.status(200).json({
-      message: "Listado de observaciones",
-      items: observaciones,
-      nextCursor: hasNextPage ? observaciones.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
       message: "Error al obtener el listado de observaciones",
@@ -169,6 +163,20 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: BaseWhere = new BaseWhere();
+
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+  baseWhere.setLikeFilter("observaciones", req.query.observaciones as string | undefined);
+  baseWhere.setForeignKeyFilter("categoriaDenuncia", req.query.categoriaDenunciaId as string | undefined);
+  baseWhere.setForeignKeyFilter("viaje", req.query.viajeId as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+  baseWhere.setRelatedAttributeLikeFilter("categoriaDenuncia", "titulo", req.query.tituloCategoria as string | undefined);
+
+  return baseWhere;
 }
 
 export { sanitizeObservacionInput, findAll, findOne, add, update, remove };

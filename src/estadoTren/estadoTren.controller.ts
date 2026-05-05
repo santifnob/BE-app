@@ -2,6 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import { orm } from "../shared/db/orm.js";
 import { Tren } from "../tren/tren.entity.js";
 import { EstadoTren } from "../estadoTren/estadoTren.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
 
@@ -28,38 +30,21 @@ function sanitizeEstadoInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
+    const baseWhere: any = buildBaseWhere(req);
 
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let estadoTrenes = await em.find(EstadoTren, where, {
-      orderBy: { id: "desc" }, // mismos criterios de orden
-      limit: limit + 1, // pedimos uno extra
-      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+    const result = await getInfiniteScroll<EstadoTren>({
+      req,
+      em,
+      entity: EstadoTren,
+      message: "Listado de estados de trenes:",
+      populate: ["tren"],
+      baseWhere
     });
 
-    const hasNextPage = estadoTrenes.length > limit;
-    estadoTrenes = estadoTrenes.slice(0, limit);
-
-    res.status(200).json({
-      message: "Listado de los estadoTrenes",
-      items: estadoTrenes,
-      nextCursor: hasNextPage ? estadoTrenes.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
-      message: "Error al obtener el listado de los estadoTrenes",
+      message: "Error al obtener los estados de los trenes",
       error: error.message,
     });
   }
@@ -161,6 +146,20 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: BaseWhere = new BaseWhere();
+
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+  baseWhere.setLikeFilter("nombre", req.query.nombre as string | undefined);
+  baseWhere.setForeignKeyFilter("tren", req.query.trenId as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+  baseWhere.setDateRangeFilter("fechaVigencia", req.query.fechaVigenciaIni as any, req.query.fechaVigenciaFin as any);
+  baseWhere.setRelatedAttributeLikeFilter("tren", "modelo", req.query.modeloTren as string | undefined);
+
+  return baseWhere;
 }
 
 export { sanitizeEstadoInput, findAll, findOne, add, update, remove };

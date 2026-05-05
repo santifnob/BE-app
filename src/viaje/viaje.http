@@ -15,12 +15,12 @@ POST http://localhost:3000/api/viaje
 Content-Type: application/json
 
 {
-  "fechaIni": "2025-08-03T10:00:00.000Z",
-  "fechaFin": "2025-09-03T10:00:00.000Z",
-  "estado": "vigente",
-  "idTren": 10,
+  "fechaIni": "2026-04-15T10:00:00.000Z",
+  "fechaFin": "2026-04-18T10:00:00.000Z",
+  "estado": "Activo",
+  "idTren": 4,
   "idRecorrido": 4,
-  "idConductor": 24
+  "idConductor": 2
 }
 
 ###ID

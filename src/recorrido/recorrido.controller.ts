@@ -1,16 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { Recorrido } from "./recorrido.entity.js";
 import { orm } from "../shared/db/orm.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
 
 const em = orm.em;
-
-type WhereType = {
-  id?: { $lt: number };
-  ciudadSalida?: string;
-  ciudadLlegada?: string;
-  estado?: string;
-  totalKm?: number;
-}
 
 function sanitizeRecorridoInput(
   req: Request,
@@ -34,47 +28,20 @@ function sanitizeRecorridoInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
+    const baseWhere = buildBaseWhere(req);
 
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
-
-    const where: WhereType = cursor ? { id: { $lt: cursor }} : {};
-    const filterColumn = req.query.filterColumn || undefined
-    const filterValue = req.query.filterValue || undefined
-
-    if (filterColumn && filterValue && where) {
-      switch (filterColumn) {
-        case "ciudadLlegada": where.ciudadLlegada = filterValue.toString(); break;
-        case "ciudadSalida": where.ciudadSalida = filterValue.toString(); break; 
-        case "estado": where.estado = filterValue.toString(); break;
-        case "totalKm": where.totalKm = parseInt(filterValue.toString()); break;
-        default: break; 
-      }
-    }
-
-    let recorridos = await em.find(Recorrido, where, {
-      orderBy: { id: "desc" }, // mismos criterios de orden
-      limit: limit + 1, // pedimos uno extra
-      // populate: ['linea', 'paradas'], // <-- SOLO si necesitás relaciones
+    const result = await getInfiniteScroll<Recorrido>({
+      req,
+      em,
+      entity: Recorrido,
+      message: "Listado de los recorridos: ",
+      baseWhere: baseWhere as any,
     });
-
-    const hasNextPage = recorridos.length > limit;
-    recorridos = recorridos.slice(0, limit);
 
     res.status(200).json({
-      message: "Listado de los recorridos",
-      items: recorridos,
-      nextCursor: hasNextPage ? recorridos.at(-1)!.id : null,
-      hasNextPage,
+      ...result,
     });
+
   } catch (error: any) {
     res.status(500).json({
       message: "Error al obtener el listado de los recorridos",
@@ -156,6 +123,22 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: BaseWhere = new BaseWhere();
+
+  baseWhere.setLikeFilter("ciudadSalida", req.query.ciudadSalida as string | undefined);
+
+  baseWhere.setLikeFilter("ciudadLlegada", req.query.ciudadLlegada as string | undefined);
+
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+
+  baseWhere.setRangeNumberFilter("totalKm", req.query.minKm, req.query.maxKm);
+
+  return baseWhere;
 }
 
 export { sanitizeRecorridoInput, findAll, findOne, add, update, remove };

@@ -3,6 +3,8 @@ import { LineaCarga } from "./lineaCarga.entity.js";
 import { orm } from "../shared/db/orm.js";
 import { Carga } from "../carga/carga.entity.js";
 import { Viaje } from "../viaje/viaje.entity.js";
+import { getInfiniteScroll } from "../shared/utils/pagination.js";
+import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";  
 
 const em = orm.em;
 
@@ -29,36 +31,21 @@ function sanitizeLineaCargaInput(
 
 async function findAll(req: Request, res: Response): Promise<void> {
   try {
-    const limitParam = Number(req.query.limit);
-    const limit =
-      Number.isFinite(limitParam) && limitParam > 0
-        ? Math.min(limitParam, 100)
-        : 10;
-    const cursorParam = req.query.cursor;
-    const cursor =
-      cursorParam !== undefined && cursorParam !== null
-        ? Number(cursorParam)
-        : null;
+    const baseWhere: any = buildBaseWhere(req);
 
-    const where = cursor ? { id: { $lt: cursor } } : {};
-
-    let lineaCargas = await em.find(LineaCarga, where, {
-      populate: ["carga", "viaje", "viaje.recorrido", "carga.precio"], // posiblemente necesitemos 'carga.precio'
-      orderBy: { id: "desc" }, // mismos criterios de orden
-      limit: limit + 1, // pedimos uno extra
+    const result = await getInfiniteScroll<LineaCarga>({
+      req,
+      em,
+      entity: LineaCarga,
+      message: "Listado de lineas de carga:",
+      populate: ["carga", "viaje", "viaje.recorrido", "carga.precio"],
+      baseWhere
     });
 
-    const hasNextPage = lineaCargas.length > limit;
-    lineaCargas = lineaCargas.slice(0, limit);
-    res.status(200).json({
-      message: "Listado de las lineas de carga",
-      items: lineaCargas,
-      nextCursor: hasNextPage ? lineaCargas.at(-1)!.id : null,
-      hasNextPage,
-    });
+    res.status(200).json(result);
   } catch (error: any) {
     res.status(500).json({
-      message: "Error al obtener el listado de las lineas de carga",
+      message: "Error al obtener el listado de lineas de carga",
       error: error.message,
     });
   }
@@ -172,6 +159,20 @@ async function remove(req: Request, res: Response): Promise<void> {
         error: error.message,
       });
   }
+}
+
+function buildBaseWhere(req: Request): any {
+  const baseWhere: BaseWhere = new BaseWhere();
+
+  baseWhere.setExactStringFilter("estado", req.query.estado as string | undefined);
+  baseWhere.setForeignKeyFilter("carga", req.query.cargaId as string | undefined);
+  baseWhere.setForeignKeyFilter("viaje", req.query.viajeId as string | undefined);
+  baseWhere.setIdFilter(req.query.id as string | undefined);
+  baseWhere.setDateRangeFilter("createdAt", req.query.fechaCreacionIni as any, req.query.fechaCreacionFin as any);
+  baseWhere.setRangeNumberFilter("cantidadVagon", req.query.minCantidadVagon as any, req.query.maxCantidadVagon as any);
+  baseWhere.setRelatedAttributeLikeFilter("carga", "name", req.query.nombreCarga as string | undefined);
+
+  return baseWhere;
 }
 
 export { sanitizeLineaCargaInput, add, update, remove, findAll, findOne };
