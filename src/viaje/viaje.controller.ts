@@ -290,7 +290,6 @@ async function update(req: Request, res: Response): Promise<void> {
         data: ViajeToUpdate,
       });
   } catch (error: any) {
-    console.log(error);
     res
       .status(500)
       .json({

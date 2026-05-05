@@ -84,7 +84,7 @@ describe('POST /api/viaje', () => {
   }
   });
 
-  it('debería crear un nuevo viaje exitosamente', async () => {
+  it('Debería crear un nuevo viaje exitosamente', async () => {
     const nuevoViaje = {
       fechaIni: '2026-05-10T10:00:00',
       fechaFin: '2026-05-10T18:00:00',
@@ -106,7 +106,7 @@ describe('POST /api/viaje', () => {
     // Verificación extra para ver si realmente se guard en la db
   });
 
-  it('debería fallar si el tren ya está ocupado (Validación de solapamiento)', async () => {
+  it('Debería fallar si el tren ya está ocupado (Validación de solapamiento)', async () => {
     
     
     const viajeOcupado = {
