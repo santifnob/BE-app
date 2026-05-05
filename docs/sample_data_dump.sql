@@ -16,7 +16,7 @@ INSERT INTO categoria_denuncia (titulo, descripcion, estado, created_at) VALUES
 ('Infraestructura', 'Problemas con vías o estaciones', 'Activo', NOW());
 
 -- Insert TipoCarga
-INSERT INTO tipo_carga (`name`, `desc`, estado, created_at) VALUES
+INSERT INTO tipo_carga (name, `desc`, estado, created_at) VALUES
 ('Granos', 'Cargas de granos y cereales', 'Activo', NOW()),
 ('Minerales', 'Minerales y metales', 'Activo', NOW()),
 ('Combustibles', 'Petróleo y derivados', 'Activo', NOW()),
