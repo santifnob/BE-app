@@ -94,7 +94,7 @@ app.post("/api/auth/login", async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: IS_PRODUCTION, // en caso de false se mantiene sin https
-      sameSite: "lax",
+      sameSite: IS_PRODUCTION ? "none" : "lax", 
       maxAge: COOKIE_MAX_AGE, // 1 hora
     });
 
@@ -117,8 +117,8 @@ app.post("/api/auth/login", async (req, res) => {
 app.post("/api/auth/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: false,
-    sameSite: "lax",
+    secure: IS_PRODUCTION,
+    sameSite: IS_PRODUCTION ? "none" : "lax",
   });
 
   res.status(200).json({ message: "Logout exitoso" });
