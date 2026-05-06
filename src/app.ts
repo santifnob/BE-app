@@ -36,9 +36,11 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 const ADMIN_PASS = process.env.ADMIN_PASS;
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
+const IS_SECURE = FRONTEND_URL.startsWith("https://");
 const COOKIE_MAX_AGE = process.env.COOKIE_MAX_AGE ? Number.parseInt(process.env.COOKIE_MAX_AGE) : 3600000
 
 const app = express();
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(cookieParser()); // Middleware para parsear las cookies entrantes
 
@@ -93,8 +95,8 @@ app.post("/api/auth/login", async (req, res) => {
 
     res.cookie("token", token, {
       httpOnly: true,
-      secure: IS_PRODUCTION, // en caso de false se mantiene sin https
-      sameSite: IS_PRODUCTION ? "none" : "lax", 
+      secure: IS_SECURE,
+      sameSite: IS_SECURE ? "none" : "lax",
       maxAge: COOKIE_MAX_AGE, // 1 hora
     });
 
@@ -117,8 +119,8 @@ app.post("/api/auth/login", async (req, res) => {
 app.post("/api/auth/logout", (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
-    secure: IS_PRODUCTION,
-    sameSite: IS_PRODUCTION ? "none" : "lax",
+    secure: IS_SECURE,
+    sameSite: IS_SECURE ? "none" : "lax",
   });
 
   res.status(200).json({ message: "Logout exitoso" });
