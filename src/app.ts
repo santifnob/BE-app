@@ -19,7 +19,7 @@ import { observacionRouter } from "./observacion/observacion.routes.js";
 import { lineaCargaRouter } from "./lineaCarga/lineaCarga.routes.js";
 import { analyticsRouter } from "./analytics/analytics.routes.js";
 import { viajeRouter } from "./viaje/viaje.routes.js";
-import { authenticateToken, authorizeRole } from "./middlewares/authMiddlewares.js";
+import { authenticateToken, authorizeRole, allowReadRestrictWrite } from "./middlewares/authMiddlewares.js";
 import { findOneByMail } from "./conductor/conductor.controller.js";
 
 if (process.env.NODE_ENV === "test" && process.env.DB_NAME !== "ferrocarril_test") {
@@ -55,25 +55,7 @@ app.use((req, res, next) => {
   RequestContext.create(orm.em, next);
 });
 
-// Los middlewares authenticateToken y authorizeRol se deberían utilziar por cada ruta que arranca con api para producción
-
-if(process.env.NODE_ENV === "production" || process.env.NODE_ENV === "test"){ // También se quiere probar que la autenticación funcione en los tests de integración
-  app.use("/api", authenticateToken);
-}
-
-app.use("/api/analytics", analyticsRouter); // Solo el admin puede acceder a las rutas de analytics
-app.use("/api/carga", cargaRouter);
-app.use("/api/categoriaDenuncia", catRouter);
-app.use("/api/lineaCarga", lineaCargaRouter);
-app.use("/api/conductor", conductorRouter);
-app.use("/api/estadoTren", estadoTrenRouter);
-app.use("/api/licencia", licenciaRouter);
-app.use("/api/observacion", observacionRouter);
-app.use("/api/recorrido", recorridoRouter); 
-app.use("/api/tipoCarga", tipoCargaRouter); 
-app.use("/api/tren", trenRouter); 
-app.use("/api/viaje", viajeRouter); 
-
+// Auth routes - NO authentication required
 app.post("/api/auth/login", async (req, res) => {
   const { email, password } = req.body.user;
   let user = null;
@@ -142,11 +124,33 @@ app.post("/api/auth/logout", (req, res) => {
   res.status(200).json({ message: "Logout exitoso" });
 });
 
+// Los middlewares authenticateToken y authorizeRol se deberían utilziar por cada ruta que arranca con api para producción
+
+if(process.env.NODE_ENV === "production" || process.env.NODE_ENV === "test"){ // También se quiere probar que la autenticación funcione en los tests de integración
+  app.use("/api", authenticateToken);
+}
+
 app.get("/api/auth/check", authenticateToken, (req, res) => {
   return res
     .status(200)
     .json({ message: "Token valido", userData: req.body.user }); // Validacion justamente hecha en el middleware authenticateToken
 });
+
+// Rutas solo para admin
+app.use("/api/analytics", analyticsRouter); // Mixed
+app.use("/api/categoriaDenuncia", allowReadRestrictWrite(), catRouter); // Admin only
+app.use("/api/estadoTren", allowReadRestrictWrite(), estadoTrenRouter); // Admin only
+app.use("/api/observacion", allowReadRestrictWrite(), observacionRouter); // Admin only
+app.use("/api/recorrido", allowReadRestrictWrite(), recorridoRouter); // Admin only
+app.use("/api/tipoCarga", allowReadRestrictWrite(), tipoCargaRouter); // Admin only
+
+
+app.use("/api/carga", allowReadRestrictWrite(), cargaRouter);
+app.use("/api/lineaCarga", allowReadRestrictWrite(), lineaCargaRouter);
+app.use("/api/licencia", allowReadRestrictWrite(), licenciaRouter);
+app.use("/api/conductor", conductorRouter); // middleware en el router
+app.use("/api/tren", allowReadRestrictWrite(), trenRouter); 
+app.use("/api/viaje", viajeRouter); // middleware en el router
 
 app.use((_, res) => {
   return res.status(404).json({ message: "Ruta no encontrada" });

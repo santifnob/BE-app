@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authorizeRole, allowReadRestrictWrite } from "../middlewares/authMiddlewares.js";
 import {
   findAll,
   findOne,
@@ -16,8 +17,8 @@ function asyncHandler(fn: Function) {
   };
 }
 
-conductorRouter.get("/", asyncHandler(findAll));
-conductorRouter.get("/:id", asyncHandler(findOne));
-conductorRouter.post("/", sanitizeConductorInput, asyncHandler(add));
+conductorRouter.get("/",asyncHandler(findAll));
+conductorRouter.get("/:id",asyncHandler(findOne));
+conductorRouter.post("/", authorizeRole(),sanitizeConductorInput, asyncHandler(add));
 conductorRouter.put("/:id", sanitizeConductorInput, asyncHandler(update));
-conductorRouter.delete("/:id", sanitizeConductorInput, asyncHandler(remove));
+conductorRouter.delete("/:id", authorizeRole(),sanitizeConductorInput, asyncHandler(remove));

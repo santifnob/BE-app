@@ -28,16 +28,36 @@ export function authenticateToken(
   );
 }
 
-export function authorizeRole(role: string): Function {
+export const authorizeRole = () =>  {
+  const role = process.env.NODE_ENV === "production" ? "admin" : null
+  return (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Response | undefined => { // permitir a todos los roles en desarrollo
+    if (role && req.body.user.role !== role) {
+      return res
+        .status(403)
+        .json({ message: "No tienes permisos para acceder a este recurso" });
+    }
+    next();
+  };
+}
+
+// Middleware para permitir lectura a todos pero solo admin puede escribir
+export const allowReadRestrictWrite: Function = () => {
   return (
     req: Request,
     res: Response,
     next: NextFunction
   ): Response | undefined => {
-    if (req.body.user.role !== role) {
+    const isReadOperation = ["GET"].includes(req.method);
+    const env = process.env.NODE_ENV || "development";
+    if(env === "development") next();
+    if (!isReadOperation && req.body.user.role !== "admin") {
       return res
         .status(403)
-        .json({ message: "No tienes permisos para acceder a este recurso" });
+        .json({ message: "No tienes permisos para realizar esta operación" });
     }
     next();
   };

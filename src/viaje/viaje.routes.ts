@@ -8,6 +8,7 @@ import {
   sanitizeViajeInput,
   viajeValidation
 } from "./viaje.controller.js";
+import { authorizeRole } from "../middlewares/authMiddlewares.js";
 
 export const viajeRouter = Router();
 
@@ -18,8 +19,8 @@ function asyncHandler(fn: Function) {
 }
 
 viajeRouter.get("/validation", asyncHandler(viajeValidation))
-viajeRouter.get("/", asyncHandler(findAll));
+viajeRouter.get("/",asyncHandler(findAll));
 viajeRouter.get("/:id", asyncHandler(findOne));
-viajeRouter.post("/", sanitizeViajeInput, asyncHandler(add));
-viajeRouter.put("/:id", sanitizeViajeInput, asyncHandler(update));
-viajeRouter.delete("/:id", asyncHandler(remove));
+viajeRouter.post("/", authorizeRole(),sanitizeViajeInput, asyncHandler(add));
+viajeRouter.put("/:id",sanitizeViajeInput, asyncHandler(update));
+viajeRouter.delete("/:id", authorizeRole(),asyncHandler(remove));
