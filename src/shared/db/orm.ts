@@ -23,6 +23,15 @@ export const orm = await MikroORM.init({
   password: process.env.DB_PASS,
   forceEntityConstructor: process.env.NODE_ENV === "test",
 
+  // DigitalOcean configuration
+  driverOptions: process.env.NODE_ENV === "production" ? {
+    connection: {
+      ssl: {
+        rejectUnauthorized: false
+      }
+    }
+  } : {},
+
   highlighter: new SqlHighlighter(),
 
   debug: process.env.DB_DEBUG === "true",

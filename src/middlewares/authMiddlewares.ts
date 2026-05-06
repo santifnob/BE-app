@@ -50,10 +50,12 @@ export const allowReadRestrictWrite: Function = () => {
     req: Request,
     res: Response,
     next: NextFunction
-  ): Response | undefined => {
+  ): Response | undefined| void => {
     const isReadOperation = ["GET"].includes(req.method);
     const env = process.env.NODE_ENV || "development";
-    if(env === "development") next();
+    if (env === "development") {
+      return next();
+    }
     if (!isReadOperation && req.body.user.role !== "admin") {
       return res
         .status(403)
