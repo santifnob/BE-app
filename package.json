@@ -5,6 +5,8 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/app.js",
     "start:dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node ./dist/app.js\"",
     "lint": "ts-standard",
     "lint:fix": "ts-standard --fix",
