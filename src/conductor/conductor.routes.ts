@@ -19,6 +19,6 @@ function asyncHandler(fn: Function) {
 
 conductorRouter.get("/",asyncHandler(findAll));
 conductorRouter.get("/:id",asyncHandler(findOne));
-conductorRouter.post("/", authorizeRole(),sanitizeConductorInput, asyncHandler(add));
+conductorRouter.post("/", sanitizeConductorInput, asyncHandler(add));
 conductorRouter.put("/:id", sanitizeConductorInput, asyncHandler(update));
 conductorRouter.delete("/:id", authorizeRole(),sanitizeConductorInput, asyncHandler(remove));

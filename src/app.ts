@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import express from "express";
+import express, { CookieOptions } from "express";
 import cors from "cors";
 import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
@@ -93,12 +93,17 @@ app.post("/api/auth/login", async (req, res) => {
       expiresIn: COOKIE_MAX_AGE / 1000,
     });
 
-    res.cookie("token", token, {
+    const cookieConfig: CookieOptions = {
       httpOnly: true,
       secure: IS_SECURE,
       sameSite: IS_SECURE ? "none" : "lax",
       maxAge: COOKIE_MAX_AGE, // 1 hora
-    });
+    }
+    if(IS_PRODUCTION){
+      cookieConfig.domain = '.miferrocarril.app'; // le dice al navegador que la cookie es válida para el dominio raíz y todos sus subdominios.
+      cookieConfig.path = '/';
+    }
+    res.cookie("token", token, cookieConfig);
 
     return res
       .status(200)
