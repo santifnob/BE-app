@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authorizeRole, allowReadRestrictWrite } from "../middlewares/authMiddlewares.js";
+import { authenticateToken, authorizeRole, allowReadRestrictWrite } from "../middlewares/authMiddlewares.js";
 import {
   findAll,
   findOne,
@@ -21,4 +21,4 @@ conductorRouter.get("/",asyncHandler(findAll));
 conductorRouter.get("/:id",asyncHandler(findOne));
 conductorRouter.post("/", sanitizeConductorInput, asyncHandler(add));
 conductorRouter.put("/:id", sanitizeConductorInput, asyncHandler(update));
-conductorRouter.delete("/:id", authorizeRole(),sanitizeConductorInput, asyncHandler(remove));
+conductorRouter.delete("/:id", authenticateToken, authorizeRole(), sanitizeConductorInput, asyncHandler(remove));
