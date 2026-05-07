@@ -15,7 +15,7 @@ Bienvenido a la documentación del backend del proyecto "Mi Ferrocarril". Aquí 
       - [2.1.5 Configuración y utilidades](#215-configuración-y-utilidades)
       - [2.1.6 Pruebas](#216-pruebas)
     - [2.2 Arquitectura](#22-arquitectura)
-  - [3. Links a PR/MR y issues](#3-links-a-prmr-y-issues)
+  - [3. Links a PR/MR](#3-links-a-prmr)
   - [4. Instrucciones de instalación](#4-instrucciones-de-instalación)
   - [4.1 Requisitos Previos](#41-requisitos-previos)
   - [4.2 Pasos de Instalación](#42-pasos-de-instalación)
@@ -60,11 +60,11 @@ Bienvenido a la documentación del backend del proyecto "Mi Ferrocarril". Aquí 
   - [6.3 Ejecución Completa de Tests](#63-ejecución-completa-de-tests)
     - [Comando](#comando)
     - [Evidencia del resultado](#evidencia-del-resultado)
-  - [7. Tracking de features y bugs](#7-tracking-de-features-y-bugs)
+  - [7. Tracking de features](#7-tracking-de-features)
   - [8. Deploy y Cloud](#8-deploy-y-cloud)
     - [8.1 Enlaces](#81-enlaces)
     - [8.2 Configuración de seguridad](#82-configuración-de-seguridad)
-    - [8.3 Prueba de endpoints (Autenticación)](#83-prueba-de-endpoints-autenticación)
+    - [8.2 Prueba de endpoints (Autenticación)](#82-prueba-de-endpoints-autenticación)
   - [9. Demo de app en video](#9-demo-de-app-en-video)
 
 ## 1. Proposal 
@@ -104,9 +104,9 @@ Bienvenido a la documentación del backend del proyecto "Mi Ferrocarril". Aquí 
 
 El backend sigue el patrón de arquitectura MVC (Modelo-Vista-Controlador), donde los modelos representan las entidades de la base de datos, los controladores manejan la lógica de negocio y las vistas son las respuestas JSON de la API.
 
-## 3. Links a PR/MR y issues
+## 3. Links a PR/MR
 - Repositorio backend: https://github.com/santifnob/BE-app
-- Pull requests / merge requests: https://github.com/santifnob/BE-app/pulls
+- Pull requests / merge requests: https://github.com/utnfrrodsw/tp/pull/181
 
 ## 4. Instrucciones de instalación
 
@@ -442,6 +442,17 @@ pnpm test
 
 ## 7. Tracking de features
 
+- Features principales:
+  - Gestión de conductores y licencias.
+  - Gestión de trenes, estados de tren y viajes.
+  - Gestión de cargas, recorridos y líneas de carga.
+  - Dashboard analítico con métricas de viaje y conductor.
+  - Cards visuales en los listados de entidades para dispositivos moviles
+- Bugs y mejoras:
+  - Validar rangos de fechas para viajes y licencias.
+  - Controlar estado de disponibilidad del tren antes de asignar viajes.
+  - Manejar sesiones de usuario y permisos en el frontend.
+
 ## 8. Deploy y Cloud
 
 El sistema se encuentra productivo en **DigitalOcean**, utilizando una arquitectura de servicios gestionados:
@@ -463,7 +474,7 @@ El acceso a la base de datos gestionada en DigitalOcean se realiza mediante vari
 
 - **SSL**: Requerido (CA Certificate).
 
-### 8.3 Prueba de endpoints (Autenticación)
+### 8.2 Prueba de endpoints (Autenticación)
 La mayoría de las rutas están protegidas por JWT. Para testear la API de forma aislada, se debe realizar una petición POST a /api/auth/login con las siguientes credenciales para obtener el token de acceso:
 
 - **Email**: admin@admin.com
@@ -471,5 +482,5 @@ La mayoría de las rutas están protegidas por JWT. Para testear la API de forma
 - **Password**: admin (acá podés poner "ver sección de acceso en Frontend" o ponerla directamente).
 
 ## 9. Demo de app en video
-- Puedes ver el video demostrativo del proyecto:
-[![Miniatura del video](image.png)](https://www.youtube.com/watch?v=FBNueOmiPjE)
+
+https://drive.google.com/file/d/1SWcnqupTZPTXxEXuQOeyiUiifFRuKqHg/view?usp=drive_link
