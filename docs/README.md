@@ -472,4 +472,4 @@ La mayoría de las rutas están protegidas por JWT. Para testear la API de forma
 
 ## 9. Demo de app en video
 - Puedes ver el video demostrativo del proyecto:
-📹 [Ver video demostrativo](./video.mp4)
+[![Miniatura del video](image.png)]([URL_DEL_VIDEO_EN_YOUTUBE](https://youtu.be/_CfoCqo7NYQ))
