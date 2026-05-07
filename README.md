@@ -1,9 +1,12 @@
 # BE-app
-This is the backend app from our project
+Backend del proyecto Mi Ferrocarril.
 
-[MODELO DE DOMINIO](https://app.diagrams.net/#G1CbL1amhzWdO4Q_SigsjlzUsf7KscJk_t#%7B"pageId"%3A"KFOGIdaJm5DWyXvSNqt7"%7D)
+## 📚 Documentación
+- Documentación principal: [docs/README.md](docs/README.md)	
 
-[FE-app](https://github.com/santifnob/FE-app)
+## 🔗 Enlaces
+- Modelo de dominio: [diagrama en diagrams.net](https://app.diagrams.net/#G1CbL1amhzWdO4Q_SigsjlzUsf7KscJk_t#%7B"pageId"%3A"KFOGIdaJm5DWyXvSNqt7"%7D)
+- Backend: [FE-app](https://github.com/santifnob/FE-app)
 
 ## Reglas de negocio
 ### Negocio:
