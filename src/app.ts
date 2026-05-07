@@ -132,6 +132,7 @@ app.post("/api/auth/logout", (req, res) => {
 });
 
 // Los middlewares authenticateToken y authorizeRol se deberían utilziar por cada ruta que arranca con api para producción
+app.use("/api/conductor", conductorRouter); // middleware en el router
 
 if(process.env.NODE_ENV === "production" || process.env.NODE_ENV === "test"){ // También se quiere probar que la autenticación funcione en los tests de integración
   app.use("/api", authenticateToken);
@@ -155,7 +156,7 @@ app.use("/api/tipoCarga", allowReadRestrictWrite(), tipoCargaRouter); // Admin o
 app.use("/api/carga", allowReadRestrictWrite(), cargaRouter);
 app.use("/api/lineaCarga", allowReadRestrictWrite(), lineaCargaRouter);
 app.use("/api/licencia", allowReadRestrictWrite(), licenciaRouter);
-app.use("/api/conductor", conductorRouter); // middleware en el router
+
 app.use("/api/tren", allowReadRestrictWrite(), trenRouter); 
 app.use("/api/viaje", viajeRouter); // middleware en el router
 
