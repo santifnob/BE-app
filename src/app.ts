@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import cookieParser from "cookie-parser";
 import 'dotenv/config.js'; 
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
 import { trenRouter } from "./tren/tren.routes.js";
 import { orm, syncSchema } from "./shared/db/orm.js";
 import { RequestContext } from "@mikro-orm/core";
@@ -59,7 +60,8 @@ app.use((req, res, next) => {
 
 // Auth routes - NO authentication required
 app.post("/api/auth/login", async (req, res) => {
-  const { email, password } = req.body.user;
+  const payload = req.body.user ?? req.body;
+  const { email, password } = payload;
   let user = null;
 
   if (email !== ADMIN_EMAIL) {
@@ -83,10 +85,19 @@ app.post("/api/auth/login", async (req, res) => {
     };
   }
 
+  let isPasswordValid: boolean = false;
+  if (user && user.password) {
+    if (email === ADMIN_EMAIL) {
+      isPasswordValid = password === user.password;
+    } else {
+      isPasswordValid = await bcrypt.compare(password, user.password);
+    }
+  }
+
   if (
     user &&
     email === user.email &&
-    password === user.password &&
+    isPasswordValid &&
     user.estado === "Activo"
   ) {
     const token = jwt.sign({ userId: user.id, role: user.role }, SECRET_KEY, {

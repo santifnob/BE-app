@@ -3,6 +3,7 @@ import { orm } from "../shared/db/orm.js";
 import { Conductor } from "./conductor.entity.js";
 import { getInfiniteScroll } from "../shared/utils/pagination.js";
 import { BaseWhere } from "../shared/utils/baseWhereFunctions.js";
+import bcrypt from "bcrypt";
 
 const em = orm.em;
 
@@ -21,7 +22,7 @@ function sanitizeConductorInput(
 
   req.body.sanitizedInput = Object.fromEntries(
     Object.entries(req.body.sanitizedInput).filter(
-      ([_, value]) => value !== undefined
+      ([_, value]) => value !== undefined && value !== ""
     )
   );
   next();
@@ -78,7 +79,11 @@ async function findOne(req: Request, res: Response): Promise<void> {
 
 async function add(req: Request, res: Response): Promise<void> {
   try {
-    const conductor = em.create(Conductor, req.body.sanitizedInput);
+    const input = { ...req.body.sanitizedInput };
+    if (input.password) {
+      input.password = await bcrypt.hash(input.password, 10);
+    }
+    const conductor = em.create(Conductor, input);
     await em.flush();
     res
       .status(201)
@@ -104,7 +109,15 @@ async function update(req: Request, res: Response): Promise<void> {
   try {
     const id = Number.parseInt(req.params.id);
     const conductor = await em.findOneOrFail(Conductor, { id });
-    em.assign(conductor, req.body.sanitizedInput);
+    const input = { ...req.body.sanitizedInput };
+    if (input.password) {
+      if (input.password !== conductor.password) {
+        input.password = await bcrypt.hash(input.password, 10);
+      } else {
+        delete input.password;
+      }
+    }
+    em.assign(conductor, input);
     await em.flush();
     res
       .status(200)
